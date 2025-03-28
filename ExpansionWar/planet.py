@@ -18,7 +18,10 @@ class Planet:
         self.connected_planets = []
 
         self.target_value = None
+
         self.value = 1
+        self.value_timer = 0
+        self.value_timer_target = 60
 
         base_texture = random.choice([planet_assets[key] for key in planet_assets if "sphere" in key])
         noise_texture = random.choice([planet_assets[key] for key in planet_assets if "noise" in key])
@@ -49,6 +52,12 @@ class Planet:
         return planet_surface
 
     def draw(self, screen, base_x, base_y):
+
+        self.value_timer += 1
+        if self.value_timer > self.value_timer_target:
+            self.value_timer = 0
+            self.value +=1
+
         screen.blit(self.surface, (base_x + self.x, base_y + self.y))
         if self.selected:
             screen.blit(self.selected_surface, (base_x + self.x, base_y + self.y))
