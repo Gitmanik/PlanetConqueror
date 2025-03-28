@@ -3,24 +3,19 @@ import pygame
 from config import *
 
 class Planet:
-    def __init__(self, x, y):
+    def __init__(self, x, y, color):
         radius = PLANET_RADIUS
 
         self.x = x
         self.y = y
+        self.color = color
 
         self.radius = radius
         self.selected = False
         self.center_x = self.x + self.radius
         self.center_y = self.y + self.radius
 
-        self.color = (
-            random.randint(50, 255),
-            random.randint(50, 255),
-            random.randint(50, 255)
-        )
-
-        self.connected_cells = []
+        self.connected_planets = []
 
         self.target_value = None
         self.value = 1
@@ -38,7 +33,7 @@ class Planet:
     def create_planet_surface(self):
         planet_surface = pygame.Surface((self.radius * 2, self.radius * 2), pygame.SRCALPHA)
 
-        planet_surface.blit(self.base_texture, (0, 0))  # Base sphere texture
+        planet_surface.blit(self.base_texture, (0, 0))
         planet_surface.blit(self.light_texture, (0, 0), special_flags = pygame.BLEND_RGBA_MULT)
         planet_surface.blit(self.noise_texture, (0, 0))
 
@@ -66,7 +61,6 @@ class Planet:
 
         text_rect = text.get_rect(center=(base_x + self.center_x, base_y + self.center_y))
         screen.blit(text, text_rect)
-
 
     def is_clicked(self, base_x, base_y, pos):
         distance = ((pos[0] - (base_x + self.center_x)) ** 2 + (pos[1] - (base_y + self.center_y)) ** 2) ** 0.5
