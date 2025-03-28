@@ -4,6 +4,9 @@ import pygame
 def scale(val, src, dst):
     return ((val - src[0]) / (src[1]-src[0])) * (dst[1]-dst[0]) + dst[0]
 
+def lerp(x1: float, x2: float, y1: float, y2: float, x: float):
+    return ((y2 - y1) * x + x2 * y1 - x1 * y2) / (x2 - x1)
+
 ASSETS_FOLDER = "assets"
 
 # Screen dimensions
@@ -34,6 +37,7 @@ background = pygame.image.load(os.path.join(ASSETS_FOLDER, "GSFC_20171208_Archiv
 background = pygame.transform.scale(background, [SCREEN_WIDTH, SCREEN_HEIGHT])
 
 planet_assets = dict()
+rocket_assets = dict()
 
 def load_assets():
     print("Loading assets...")
@@ -42,3 +46,9 @@ def load_assets():
             continue
         filename = file.split(".")[0]
         planet_assets[filename] = pygame.image.load(os.path.join(ASSETS_FOLDER, "PlanetParts", file))
+
+    for file in os.listdir(os.path.join(ASSETS_FOLDER, "Rockets")):
+        if not file.endswith(".png"):
+            continue
+        filename = file.split(".")[0]
+        rocket_assets[filename] = pygame.image.load(os.path.join(ASSETS_FOLDER, "Rockets", file))

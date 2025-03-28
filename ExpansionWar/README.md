@@ -18,6 +18,7 @@ Planet conqueror is a 'expansion war' game made in Python and Pygame.
 
 ## Used graphics
 - [Kenney Planets](https://kenney.nl/assets/planets)
+- [Kenney Space Shooter Extension](https://kenney.nl/assets/space-shooter-extension)
 - [NASA Hubble's Hockey Stick Galaxy](https://images.nasa.gov/details/GSFC_20171208_Archive_e000012)
 
 ## Used libraries

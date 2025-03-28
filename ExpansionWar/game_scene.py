@@ -5,11 +5,13 @@ from config import *
 import pygame
 
 from planet import Planet
+from rocket import Rocket
 
 
 class GameScene:
     def __init__(self, level):
         self.planets = []
+        self.rockets = []
         self.selected_planet = None
         self.level = level
         self.info_bar_height = GAME_INFO_BAR_HEIGHT
@@ -22,14 +24,31 @@ class GameScene:
     def add_planet(self, planet):
         self.planets.append(planet)
 
+    def rocket_finished(self, rocket):
+        self.rockets.remove(rocket)
+
     def draw(self, surface):
         for planet in self.planets:
-            for connected_planet in planet.connected_planets:
+            for i in range(0, len(planet.connected_planets)):
+                connected_planet_data = planet.connected_planets[i]
+                connected_planet = connected_planet_data[0]
+                connected_planet_tick = connected_planet_data[1]
+
+                if planet.value > 0 and connected_planet_tick > planet.send_rocket_every:
+                    planet.connected_planets[i] = (connected_planet, 0)
+                    self.rockets.append(Rocket(self, planet, connected_planet))
+                    planet.value -=1
+                else:
+                    planet.connected_planets[i] = (connected_planet, connected_planet_tick + 1)
+
                 pygame.draw.line(surface, CONNECTION_COLOR,
                                  (self.planets_base_x + planet.center_x, self.planets_base_y + planet.center_y),
                                  (self.planets_base_x + connected_planet.center_x, self.planets_base_y + connected_planet.center_y), 5)
 
         self.draw_ui(surface)
+
+        for rocket in self.rockets:
+            rocket.draw(self.planets_base_x, self.planets_base_y, surface)
 
         for planet in self.planets:
             planet.draw(surface, self.planets_base_x, self.planets_base_y)
@@ -55,7 +74,7 @@ class GameScene:
                         print("Planets already connected!")
                     else:
                         print("Connected planets")
-                        self.selected_planet.connected_planets.append(planet)
+                        self.selected_planet.connect_planet(planet)
 
                     self.selected_planet.selected = False
                     self.selected_planet = None
