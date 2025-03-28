@@ -46,8 +46,8 @@ class Planet:
         colored_surface.fill(self.color)
 
         self.selected_surface = pygame.Surface((self.radius * 2, self.radius * 2), pygame.SRCALPHA)
-        self.selected_surface.fill((255,255,255))
-        self.selected_surface.blit(self.noise_texture, (0, 0), special_flags = pygame.BLEND_RGBA_MULT)
+        self.selected_surface.fill((255,255,255,127))
+        self.selected_surface.blit(self.base_texture, (0, 0), special_flags = pygame.BLEND_RGBA_MULT)
 
         planet_surface.blit(colored_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
