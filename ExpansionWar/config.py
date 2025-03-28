@@ -18,7 +18,7 @@ PLANET_TEXT_SIZE = 24
 # Colors
 PLAYER_COLOR = (0, 0x78, 0x48)
 BACKGROUND_COLOR = (40, 40, 60)
-CONNECTION_COLOR = (180, 100, 200)
+CONNECTION_COLOR = (0x81, 0x83, 0x80)
 
 #Scaled dimensions
 SCREEN_WIDTH = 400*2
@@ -31,9 +31,10 @@ GAME_SCENE_WIDTH = SCREEN_WIDTH
 GAME_SCENE_HEIGHT = SCREEN_HEIGHT - GAME_INFO_BAR_HEIGHT
 
 background = pygame.image.load(os.path.join(ASSETS_FOLDER, "GSFC_20171208_Archive_e000012~medium.jpg"))
-background = pygame.transform.scale(background, [SCREEN_WIDTH,SCREEN_HEIGHT])
+background = pygame.transform.scale(background, [SCREEN_WIDTH, SCREEN_HEIGHT])
 
 planet_assets = dict()
+
 def load_assets():
     print("Loading assets...")
     for file in os.listdir(os.path.join(ASSETS_FOLDER, "PlanetParts")):

@@ -14,6 +14,9 @@ class GameScene:
         self.level = level
         self.info_bar_height = GAME_INFO_BAR_HEIGHT
 
+        self.planets_base_x = 0
+        self.planets_base_y = self.info_bar_height
+
         self.create_level()
 
     def add_planet(self, planet):
@@ -21,15 +24,15 @@ class GameScene:
 
     def draw(self, surface):
         for planet in self.planets:
-            for connected_cell in planet.connected_planets:
+            for connected_planet in planet.connected_planets:
                 pygame.draw.line(surface, CONNECTION_COLOR,
-                                 (planet.center_x, planet.center_y),
-                                 (connected_cell.center_x, connected_cell.center_y), 5)
+                                 (self.planets_base_x + planet.center_x, self.planets_base_y + planet.center_y),
+                                 (self.planets_base_x + connected_planet.center_x, self.planets_base_y + connected_planet.center_y), 5)
 
         self.draw_ui(surface)
 
         for planet in self.planets:
-            planet.draw(surface, 0, self.info_bar_height)
+            planet.draw(surface, self.planets_base_x, self.planets_base_y)
 
     def draw_ui(self, surface):
         font = pygame.font.SysFont('Arial', PLANET_TEXT_SIZE)
@@ -39,7 +42,6 @@ class GameScene:
     def handle_click(self, pos):
         for planet in self.planets:
             if planet.is_clicked(0, self.info_bar_height, pos):
-                print(f"Clicked planet {planet}")
                 if self.selected_planet is None:
                     if planet.color != PLAYER_COLOR:
                         print("Enemy planet clicked")
@@ -49,6 +51,12 @@ class GameScene:
                     planet.selected = True
                     return True
                 elif self.selected_planet != planet:
+                    if planet in self.selected_planet.connected_planets:
+                        print("Planets already connected!")
+                    else:
+                        print("Connected planets")
+                        self.selected_planet.connected_planets.append(planet)
+
                     self.selected_planet.selected = False
                     self.selected_planet = None
                     return True
