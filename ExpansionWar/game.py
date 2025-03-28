@@ -25,7 +25,7 @@ def main():
             y = random.uniform(PLANET_RADIUS * 2, GAME_SCENE_HEIGHT - PLANET_RADIUS * 2)
 
             for planet in grid.planets:
-                if planet.is_clicked(0, 0, (x, y)):
+                if planet.is_clicked(0, 0, (x+PLANET_RADIUS, y+PLANET_RADIUS)):
                     ok = False
             if ok:
                 break
