@@ -80,7 +80,7 @@ class GameScene:
                     planet.selected = True
                     return True
                 elif self.selected_planet != planet:
-                    if planet in self.selected_planet.connected_planets:
+                    if planet in [x[0] for x in self.selected_planet.connected_planets]:
                         logger.warning("Planets already connected!")
                     else:
                         logger.info("Connected planets")
