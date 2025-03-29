@@ -34,7 +34,7 @@ PLANET_TEXT_SIZE = int(scale(PLANET_TEXT_SIZE, (0, BASE_HEIGHT), (0, SCREEN_HEIG
 GAME_SCENE_WIDTH = SCREEN_WIDTH
 GAME_SCENE_HEIGHT = SCREEN_HEIGHT - GAME_INFO_BAR_HEIGHT
 
-background = pygame.image.load(os.path.join(ASSETS_FOLDER, "GSFC_20171208_Archive_e000012~medium.jpg"))
+background = pygame.image.load(os.path.join(ASSETS_FOLDER, "Background.png"))
 background = pygame.transform.scale(background, [SCREEN_WIDTH, SCREEN_HEIGHT])
 
 planet_assets = dict()
