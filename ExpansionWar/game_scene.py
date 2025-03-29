@@ -28,6 +28,14 @@ class GameScene:
         self.rockets.remove(rocket)
 
     def draw(self, surface):
+
+        colors = set(planet.color for planet in self.planets)
+        if len(colors) == 1: # Win condition
+            if colors.pop() == PLAYER_COLOR:
+                print("win")
+            else:
+                print("lose")
+
         for planet in self.planets:
             for i in range(0, len(planet.connected_planets)):
                 connected_planet_data = planet.connected_planets[i]
