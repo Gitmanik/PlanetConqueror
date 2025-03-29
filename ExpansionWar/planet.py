@@ -33,7 +33,7 @@ class Planet:
         self.noise_texture = pygame.transform.scale(noise_texture, (radius * 2, radius * 2))
         self.light_texture = pygame.transform.scale(light_texture, (radius * 2, radius * 2))
 
-        self.surface = self.create_planet_surface()
+        self.create_planet_surface()
 
     def connect_planet(self, planet):
         self.connected_planets.append((planet, 0))
@@ -54,14 +54,14 @@ class Planet:
 
         planet_surface.blit(colored_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
-        return planet_surface
+        self.surface = planet_surface
 
     def draw(self, screen, base_x, base_y):
-
-        self.value_timer += 1
-        if self.value_timer > self.value_timer_target:
-            self.value_timer = 0
-            self.value +=1
+        if self.color != NO_OWNER_COLOR:
+            self.value_timer += 1
+            if self.value_timer > self.value_timer_target:
+                self.value_timer = 0
+                self.value +=1
 
         screen.blit(self.surface, (base_x + self.x, base_y + self.y))
         if self.selected:
@@ -79,3 +79,7 @@ class Planet:
     def is_clicked(self, base_x, base_y, pos):
         distance = ((pos[0] - (base_x + self.center_x)) ** 2 + (pos[1] - (base_y + self.center_y)) ** 2) ** 0.5
         return distance <= self.radius
+
+    def set_color(self, new_color):
+        self.color = new_color
+        self.create_planet_surface()
