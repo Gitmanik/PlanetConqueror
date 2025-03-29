@@ -12,9 +12,9 @@ Planet conqueror is a 'expansion war' game made in Python and Pygame.
 - [ ] **Combat system considering levels, unit multiplication, and special battle effects** (3 points)
 - [ ] **Turn mechanism and timer for making a move (turn clock)** (2 points)
 - [ ] **Strategic suggestion system based on AI (e.g., best move of the turn)** (1 point)
-- [ ] **Unit control via camera gestures (clicking with hand movement)** (1 point)
+- [ ] **Unit control via camera gestures (clicking with hand movement)** (2 points)
 - [ ] **Logger displaying messages on the console and in the QTextEdit interface with rotating logging** (1 point)
-- [ ] **Switching between 2D and 3D view (including rendering units in 3D)** (2 points)
+- [ ] **Switching between 2D and 3D view (including rendering units in 3D)** (4 points)
 
 ## Used graphics
 - [Kenney Planets](https://kenney.nl/assets/planets)
