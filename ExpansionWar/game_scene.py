@@ -92,9 +92,11 @@ class GameScene:
 
         print(f"Creating level {self.level}: enemy_ct: {enemy_ct}, enemy_planets: {enemy_planets}")
 
-        for i in range(-1, enemy_ct):
+        for i in range(-2, enemy_ct):
             if i == -1:
                 color = PLAYER_COLOR
+            elif i == -2:
+                color = NO_OWNER_COLOR
             else:
                 color = (
                     random.randint(50, 255),
