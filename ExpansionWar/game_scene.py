@@ -7,6 +7,8 @@ import pygame
 from planet import Planet
 from rocket import Rocket
 
+import logging
+logger = logging.getLogger(__name__)
 
 class GameScene:
     def __init__(self, level):
@@ -32,9 +34,9 @@ class GameScene:
         colors = set(planet.color for planet in self.planets)
         if len(colors) == 1: # Win condition
             if colors.pop() == PLAYER_COLOR:
-                print("win")
+                logger.info("win")
             else:
-                print("lose")
+                logger.info("lose")
 
         for planet in self.planets:
             for i in range(0, len(planet.connected_planets)):
@@ -71,7 +73,7 @@ class GameScene:
             if planet.is_clicked(0, self.info_bar_height, pos):
                 if self.selected_planet is None:
                     if planet.color != PLAYER_COLOR:
-                        print("Enemy planet clicked")
+                        logger.debug("Enemy planet clicked")
                         return True
 
                     self.selected_planet = planet
@@ -79,9 +81,9 @@ class GameScene:
                     return True
                 elif self.selected_planet != planet:
                     if planet in self.selected_planet.connected_planets:
-                        print("Planets already connected!")
+                        logger.warning("Planets already connected!")
                     else:
-                        print("Connected planets")
+                        logger.info("Connected planets")
                         self.selected_planet.connect_planet(planet)
 
                     self.selected_planet.selected = False
@@ -98,7 +100,7 @@ class GameScene:
         enemy_ct = round(1.5**self.level-0.5)
         enemy_planets = round(1.5**self.level-0.5)
 
-        print(f"Creating level {self.level}: enemy_ct: {enemy_ct}, enemy_planets: {enemy_planets}")
+        logger.info(f"Creating level {self.level}: enemy_ct: {enemy_ct}, enemy_planets: {enemy_planets}")
 
         for i in range(-2, enemy_ct):
             if i == -1:

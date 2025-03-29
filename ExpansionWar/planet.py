@@ -2,6 +2,9 @@ import random
 import pygame
 from config import *
 
+import logging
+logger = logging.getLogger(__name__)
+
 class Planet:
     def __init__(self, x, y, color):
         radius = PLANET_RADIUS

@@ -2,6 +2,9 @@ import math
 
 from config import *
 
+import logging
+logger = logging.getLogger(__name__)
+
 class Rocket:
     def __init__(self, scene, planet, other_planet):
         if planet.color == other_planet.color:

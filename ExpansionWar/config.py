@@ -1,6 +1,9 @@
 import os
 import pygame
 
+import logging
+logger = logging.getLogger(__name__)
+
 def scale(val, src, dst):
     return ((val - src[0]) / (src[1]-src[0])) * (dst[1]-dst[0]) + dst[0]
 
@@ -41,7 +44,7 @@ planet_assets = dict()
 rocket_assets = dict()
 
 def load_assets():
-    print("Loading assets...")
+    logger.debug("Loading assets...")
     for file in os.listdir(os.path.join(ASSETS_FOLDER, "PlanetParts")):
         if not file.endswith(".png"):
             continue
