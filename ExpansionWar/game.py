@@ -1,7 +1,7 @@
 import pygame
 import sys
 
-from config import *
+import config
 from game_scene import GameScene
 
 import logging
@@ -11,25 +11,25 @@ from pygame_logger import PygameHandler
 
 pygame.init()
 
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pygame.display.set_mode((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
 pygame.display.set_caption("Planet Conqueror")
 clock = pygame.time.Clock()
 
 def main():
-    grid = GameScene(1)
+    config.current_scene = GameScene(1)
 
     running = True
     while running:
-        screen.blit(background, (0, 0), (0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
+        screen.blit(config.background, (0, 0), (0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
-                    grid.handle_click(event.pos)
+                    config.current_scene.handle_click(event.pos)
 
-        grid.draw(screen)
+        config.current_scene.draw(screen)
         pygame_handler.draw(screen)
 
         pygame.display.flip()
@@ -58,5 +58,5 @@ def setup_logger():
 
 if __name__ == "__main__":
     setup_logger()
-    load_assets()
+    config.load_assets()
     main()

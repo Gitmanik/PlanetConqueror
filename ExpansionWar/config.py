@@ -56,3 +56,10 @@ def load_assets():
             continue
         filename = file.split(".")[0]
         rocket_assets[filename] = pygame.image.load(os.path.join(ASSETS_FOLDER, "Rockets", file))
+
+current_scene = None
+def set_scene(new_scene):
+    global current_scene
+
+    logger.info(f"Setting scene to {new_scene}")
+    current_scene = new_scene

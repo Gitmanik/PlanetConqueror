@@ -1,7 +1,7 @@
 import math
 import random
 
-from config import *
+import config
 import pygame
 
 from planet import Planet
@@ -16,7 +16,7 @@ class GameScene:
         self.rockets = []
         self.selected_planet = None
         self.level = level
-        self.info_bar_height = GAME_INFO_BAR_HEIGHT
+        self.info_bar_height = config.GAME_INFO_BAR_HEIGHT
 
         self.planets_base_x = 0
         self.planets_base_y = self.info_bar_height
@@ -33,10 +33,13 @@ class GameScene:
 
         colors = set(planet.color for planet in self.planets)
         if len(colors) == 1: # Win condition
-            if colors.pop() == PLAYER_COLOR:
-                logger.info("win")
+            if colors.pop() == config.PLAYER_COLOR:
+                config.logger.info("win")
+                config.set_scene(GameScene(self.level + 1))
             else:
-                logger.info("lose")
+                config.logger.info("lose")
+                config.set_scene(GameScene(self.level))
+            return
 
         for planet in self.planets:
             for i in range(0, len(planet.connected_planets)):
@@ -47,11 +50,11 @@ class GameScene:
                 if planet.value > 0 and connected_planet_tick > planet.send_rocket_every:
                     planet.connected_planets[i] = (connected_planet, 0)
                     self.rockets.append(Rocket(self, planet, connected_planet))
-                    planet.value -=1
+                    planet.value -= 1
                 else:
                     planet.connected_planets[i] = (connected_planet, connected_planet_tick + 1)
 
-                pygame.draw.line(surface, CONNECTION_COLOR,
+                pygame.draw.line(surface, config.CONNECTION_COLOR,
                                  (self.planets_base_x + planet.center_x, self.planets_base_y + planet.center_y),
                                  (self.planets_base_x + connected_planet.center_x, self.planets_base_y + connected_planet.center_y), 5)
 
@@ -64,7 +67,7 @@ class GameScene:
             planet.draw(surface, self.planets_base_x, self.planets_base_y)
 
     def draw_ui(self, surface):
-        font = pygame.font.SysFont('Arial', PLANET_TEXT_SIZE)
+        font = pygame.font.SysFont('Arial', config.PLANET_TEXT_SIZE)
         stage_text = font.render(f"Level {self.level}", True, (255, 255, 255))
         surface.blit(stage_text, (20, 20))
 
@@ -72,8 +75,8 @@ class GameScene:
         for planet in self.planets:
             if planet.is_clicked(0, self.info_bar_height, pos):
                 if self.selected_planet is None:
-                    if planet.color != PLAYER_COLOR:
-                        logger.debug("Enemy planet clicked")
+                    if planet.color != config.PLAYER_COLOR:
+                        config.logger.debug("Enemy planet clicked")
                         return True
 
                     self.selected_planet = planet
@@ -81,9 +84,9 @@ class GameScene:
                     return True
                 elif self.selected_planet != planet:
                     if planet in [x[0] for x in self.selected_planet.connected_planets]:
-                        logger.warning("Planets already connected!")
+                        config.logger.warning("Planets already connected!")
                     else:
-                        logger.info("Connected planets")
+                        config.logger.info("Connected planets")
                         self.selected_planet.connect_planet(planet)
 
                     self.selected_planet.selected = False
@@ -100,13 +103,13 @@ class GameScene:
         enemy_ct = round(1.5**self.level-0.5)
         enemy_planets = round(1.5**self.level-0.5)
 
-        logger.info(f"Creating level {self.level}: enemy_ct: {enemy_ct}, enemy_planets: {enemy_planets}")
+        config.logger.info(f"Creating level {self.level}: enemy_ct: {enemy_ct}, enemy_planets: {enemy_planets}")
 
         for i in range(-2, enemy_ct):
             if i == -1:
-                color = PLAYER_COLOR
+                color = config.PLAYER_COLOR
             elif i == -2:
-                color = NO_OWNER_COLOR
+                color = config.NO_OWNER_COLOR
             else:
                 color = (
                     random.randint(50, 255),
@@ -117,11 +120,11 @@ class GameScene:
             for _ in range(0, enemy_planets):
                 while True:
                     ok = True
-                    x = random.uniform(PLANET_RADIUS * 2, GAME_SCENE_WIDTH - PLANET_RADIUS * 2)
-                    y = random.uniform(PLANET_RADIUS * 2, GAME_SCENE_HEIGHT - PLANET_RADIUS * 2)
+                    x = random.uniform(config.PLANET_RADIUS * 2, config.GAME_SCENE_WIDTH - config.PLANET_RADIUS * 2)
+                    y = random.uniform(config.PLANET_RADIUS * 2, config.GAME_SCENE_HEIGHT - config.PLANET_RADIUS * 2)
 
                     for planet in self.planets:
-                        if planet.is_clicked(0, 0, (x + PLANET_RADIUS, y + PLANET_RADIUS)):
+                        if planet.is_clicked(0, 0, (x + config.PLANET_RADIUS, y + config.PLANET_RADIUS)):
                             ok = False
                     if ok:
                         break

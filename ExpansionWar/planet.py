@@ -1,13 +1,13 @@
 import random
 import pygame
-from config import *
+import config
 
 import logging
 logger = logging.getLogger(__name__)
 
 class Planet:
     def __init__(self, x, y, color):
-        radius = PLANET_RADIUS
+        radius = config.PLANET_RADIUS
 
         self.x = x
         self.y = y
@@ -28,9 +28,9 @@ class Planet:
 
         self.send_rocket_every = 60
 
-        base_texture = random.choice([planet_assets[key] for key in planet_assets if "sphere" in key])
-        noise_texture = random.choice([planet_assets[key] for key in planet_assets if "noise" in key])
-        light_texture = random.choice([planet_assets[key] for key in planet_assets if "light" in key])
+        base_texture = random.choice([config.planet_assets[key] for key in config.planet_assets if "sphere" in key])
+        noise_texture = random.choice([config.planet_assets[key] for key in config.planet_assets if "noise" in key])
+        light_texture = random.choice([config.planet_assets[key] for key in config.planet_assets if "light" in key])
 
         self.base_texture = pygame.transform.scale(base_texture, (radius * 2, radius * 2))
         self.noise_texture = pygame.transform.scale(noise_texture, (radius * 2, radius * 2))
@@ -60,7 +60,7 @@ class Planet:
         self.surface = planet_surface
 
     def draw(self, screen, base_x, base_y):
-        if self.color != NO_OWNER_COLOR:
+        if self.color != config.NO_OWNER_COLOR:
             self.value_timer += 1
             if self.value_timer > self.value_timer_target:
                 self.value_timer = 0
