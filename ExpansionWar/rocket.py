@@ -27,7 +27,14 @@ class Rocket:
         self.current_time +=1
 
         if self.current_time >= self.target_time:
-            self.other_planet.value += 1
+            if self.planet.color == self.other_planet.color:
+                self.other_planet.value += 1
+            elif self.planet.color != self.planet:
+                self.other_planet.value -= 1
+                if self.other_planet.value <= 0:
+                    self.other_planet.set_color(self.planet.color)
+                    self.other_planet.value = 1
+
             self.scene.rocket_finished(self)
 
         self.x = lerp(0, self.target_time, self.planet.center_x, self.other_planet.center_x, self.current_time)
