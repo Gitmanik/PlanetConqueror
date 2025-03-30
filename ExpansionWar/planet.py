@@ -7,9 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Planet:
-    def __init__(self, x, y, color):
-        radius = config.PLANET_RADIUS
-
+    def __init__(self, x, y, color, radius = config.PLANET_RADIUS):
         self.x = x
         self.y = y
         self.color = color
