@@ -11,7 +11,7 @@ def lerp(x1: float, x2: float, y1: float, y2: float, x: float):
     return ((y2 - y1) * x + x2 * y1 - x1 * y2) / (x2 - x1)
 
 ENABLE_PYGAME_LOG = False
-PYGAME_LOG_LIMIT = 50
+PYGAME_LOG_LIMIT = 100
 
 TURN_TIME = 10 * 1000
 

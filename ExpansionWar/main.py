@@ -35,6 +35,9 @@ async def main():
                     config.current_scene.handle_mouse_up(event.pos)
             elif event.type == pygame.MOUSEMOTION:
                 config.current_scene.handle_mouse_motion(event.pos)
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKQUOTE:
+                    config.ENABLE_PYGAME_LOG = not config.ENABLE_PYGAME_LOG
 
         config.current_scene.draw(screen)
         if config.ENABLE_PYGAME_LOG:
