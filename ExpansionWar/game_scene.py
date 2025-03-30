@@ -150,9 +150,18 @@ class GameScene:
                     x = random.uniform(config.PLANET_RADIUS * 2, config.GAME_SCENE_WIDTH - config.PLANET_RADIUS * 2)
                     y = random.uniform(config.PLANET_RADIUS * 2, config.GAME_SCENE_HEIGHT - config.PLANET_RADIUS * 2)
 
+                    candidate_center = (x + config.PLANET_RADIUS, y + config.PLANET_RADIUS)
+
                     for planet in self.planets:
-                        if planet.is_clicked(0, 0, (x + config.PLANET_RADIUS, y + config.PLANET_RADIUS)):
+                        dx = candidate_center[0] - (planet.center_x)
+                        dy = candidate_center[1] - (planet.center_y)
+                        distance = math.hypot(dx, dy)
+
+                        if distance < 2 * config.PLANET_RADIUS:
                             ok = False
+                            break
+
                     if ok:
                         break
+
                 self.add_planet(Planet(x,y, color))
