@@ -1,4 +1,4 @@
-## Planet Conqueror
+## Planet Conqueror - try this game [here](https://gitmanik.github.io/PlanetConqueror/)!
 
 Planet conqueror is a 'expansion war' game made in Python and Pygame.
 
