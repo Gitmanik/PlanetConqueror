@@ -18,7 +18,7 @@ pygame.display.set_caption("Planet Conqueror")
 clock = pygame.time.Clock()
 
 async def main():
-    config.current_scene = GameScene(1)
+    config.current_scene = GameScene(1, 2100)
 
     running = True
     while running:

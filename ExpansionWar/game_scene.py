@@ -11,15 +11,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 class GameScene:
-    def __init__(self, level):
+    def __init__(self, level, year):
         self.planets = []
         self.rockets = []
         self.connections = []
 
         self.selected_planet = None
         self.level = level
-
-        self.year = 2100
+        self.year_start = year
+        self.year = year
 
         self.planets_base_x = 0
         self.planets_base_y = config.GAME_INFO_BAR_HEIGHT
@@ -65,10 +65,10 @@ class GameScene:
         if len(all_colors) == 1:
             if all_colors.pop() == config.PLAYER_COLOR:
                 config.logger.info("win")
-                config.set_scene(GameScene(self.level + 1))
+                config.set_scene(GameScene(self.level + 1, self.year))
             else:
                 config.logger.info("lose")
-                config.set_scene(GameScene(self.level))
+                config.set_scene(GameScene(self.level, self.year_start))
             return
 
         # Turn time
