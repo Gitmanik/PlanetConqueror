@@ -1,12 +1,13 @@
 import pygame
 import config
+from planet import Planet
 from scenes.game_scene import GameScene
 
 class MenuScene:
     def __init__(self):
-        self.title_font = pygame.font.Font(config.assets[config.FONT_NAME], 72)
-        self.button_font = pygame.font.Font(config.assets[config.FONT_NAME], 36)
-        self.link_font = pygame.font.Font(config.assets[config.FONT_NAME], 24)
+        self.title_font = pygame.font.Font(config.assets[config.FONT_NAME], 100)
+        self.button_font = pygame.font.Font(config.assets[config.FONT_NAME], 60)
+        self.link_font = pygame.font.Font(config.assets[config.FONT_NAME], 40)
 
         # Render texts.
         self.title_text = self.title_font.render("Planet", True, (255, 255, 255))
@@ -17,15 +18,19 @@ class MenuScene:
         self.start_button_rect = None
         self.github_rect = None
 
+        self.planet = Planet(config.SCREEN_WIDTH/4, config.SCREEN_HEIGHT/3, config.PLAYER_COLOR, 1000)
+
     def draw(self, surface):
         screen_width, screen_height = surface.get_size()
 
+        self.planet.draw(surface, 0, 0)
+
         title_rect = self.title_text.get_rect(midtop=(screen_width // 2, 50))
         surface.blit(self.title_text, title_rect)
-        title2_rect = self.title2_text.get_rect(midtop=(screen_width // 2, 100))
+        title2_rect = self.title2_text.get_rect(midtop=(screen_width // 2, 50+title_rect.height-40))
         surface.blit(self.title2_text, title2_rect)
 
-        button_width, button_height = 200, 60
+        button_width, button_height = 350, 90
         self.start_button_rect = pygame.Rect(
             (screen_width - button_width) // 2,
             (screen_height - button_height) // 2,
