@@ -111,7 +111,7 @@ class GameScene:
             surface.blit(self.card_image, rect)
 
     def draw_turn(self, surface):
-        x = config.lerp(0, config.TURN_TIME, config.SCREEN_WIDTH, 0, pygame.time.get_ticks() - self.current_turn_start,)
+        x = config.lerp(0, config.TURN_TIME, config.SCREEN_WIDTH, 0, pygame.time.get_ticks() - self.current_turn_start)
         pygame.draw.rect(surface, self.current_turn_color, (self.planets_base_x, self.planets_base_y, x, 10))
 
     def handle_click(self, pos):
@@ -150,6 +150,7 @@ class GameScene:
         if self.current_turn_color == config.PLAYER_COLOR:
             for i, rect in enumerate(self.get_card_rects()):
                 if rect.collidepoint(pos):
+                    logger.debug(f"Card {i} clicked")
                     self.dragging_card = i
                     self.dragging_card_offset = (pos[0] - rect.x, pos[1] - rect.y)
                     self.dragging_card_pos = (rect.x, rect.y)
