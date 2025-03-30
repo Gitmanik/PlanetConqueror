@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Planet:
-    def __init__(self, x, y, color, radius = config.PLANET_RADIUS):
+    def __init__(self, x, y, color, radius = config.PLANET_RADIUS, show_value = True):
         self.x = x
         self.y = y
         self.color = color
@@ -22,6 +22,7 @@ class Planet:
 
         self.value = 1
         self.value_start = 0
+        self.show_value = show_value
 
         self.add_value_every = 1 * 1000
         self.send_rocket_every = 1 * 1000
@@ -105,13 +106,13 @@ class Planet:
         if self.apply_black_surface:
             screen.blit(self.black_surface, (base_x + self.x, base_y + self.y))
 
-        if self.target_value:
-            text = self.font.render(f"{self.value}/{self.target_value}", True, (255, 255, 255))
-        else:
-            text = self.font.render(f"{self.value}", True, (255, 255, 255))
-
-        text_rect = text.get_rect(center=(base_x + self.center_x, base_y + self.center_y))
-        screen.blit(text, text_rect)
+        if self.show_value:
+            if self.target_value:
+                text = self.font.render(f"{self.value}/{self.target_value}", True, (255, 255, 255))
+            else:
+                text = self.font.render(f"{self.value}", True, (255, 255, 255))
+            text_rect = text.get_rect(center=(base_x + self.center_x, base_y + self.center_y))
+            screen.blit(text, text_rect)
 
     def is_clicked(self, base_x, base_y, pos):
         distance = ((pos[0] - (base_x + self.center_x)) ** 2 + (pos[1] - (base_y + self.center_y)) ** 2) ** 0.5
