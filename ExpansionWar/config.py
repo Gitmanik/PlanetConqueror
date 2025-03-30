@@ -14,6 +14,7 @@ ASSETS_FOLDER = "assets"
 ENABLE_PYGAME_LOG = False
 
 FONT_NAME = os.path.join(ASSETS_FOLDER, "Kenney Future Narrow.ttf")
+TURN_TIME = 2 * 1000
 
 # Screen dimensions
 BASE_WIDTH = 400

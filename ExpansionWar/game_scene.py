@@ -31,18 +31,37 @@ class GameScene:
         self.cards_surface.set_alpha(200)
         self.cards_surface.fill((0, 0, 0))
 
+        self.current_turn_color = config.PLAYER_COLOR
+        self.current_turn_start = pygame.time.get_ticks()
         self.create_level()
 
     def draw(self, surface):
         surface.blit(self.info_bar_surface, (0,0))
-        surface.blit(self.cards_surface, (0, self.planets_base_y + config.GAME_SCENE_HEIGHT))
+        if self.current_turn_color == config.PLAYER_COLOR:
+            surface.blit(self.cards_surface, (0, self.planets_base_y + config.GAME_SCENE_HEIGHT))
 
         self.draw_info(surface)
         self.draw_cards(surface)
+        if self.current_turn_color != config.PLAYER_COLOR:
+            surface.blit(self.cards_surface, (0, self.planets_base_y + config.GAME_SCENE_HEIGHT))
 
-        colors = set(planet.color for planet in self.planets)
-        if len(colors) == 1: # Win condition
-            if colors.pop() == config.PLAYER_COLOR:
+        self.draw_turn(surface)
+
+        for connection in self.connections:
+            connection.draw(self.planets_base_x, self.planets_base_y, surface)
+
+        for planet in self.planets:
+            planet.draw(surface, self.planets_base_x, self.planets_base_y)
+
+
+        # GAME LOGIC
+
+        all_colors = sorted(set(planet.color for planet in self.planets))
+        all_playing_colors = sorted(set(planet.color for planet in self.planets if planet.color != config.NO_OWNER_COLOR))
+
+        # End condition
+        if len(all_colors) == 1:
+            if all_colors.pop() == config.PLAYER_COLOR:
                 config.logger.info("win")
                 config.set_scene(GameScene(self.level + 1))
             else:
@@ -50,11 +69,14 @@ class GameScene:
                 config.set_scene(GameScene(self.level))
             return
 
-        for connection in self.connections:
-            connection.draw(self.planets_base_x, self.planets_base_y, surface)
+        # Turn time
+        if pygame.time.get_ticks() - self.current_turn_start > config.TURN_TIME:
+            idx = all_playing_colors.index(self.current_turn_color) + 1
+            if idx >= len(all_playing_colors):
+                self.year += 1
 
-        for planet in self.planets:
-            planet.draw(surface, self.planets_base_x, self.planets_base_y)
+            self.current_turn_color = all_playing_colors[(idx) % len(all_playing_colors)]
+            self.current_turn_start = pygame.time.get_ticks()
 
     def draw_info(self, surface):
         font = pygame.font.Font(config.FONT_NAME, config.PLANET_TEXT_SIZE)
@@ -87,6 +109,10 @@ class GameScene:
         for i in range(total_cards):
             x = start_x + i * (card_width + spacing)
             surface.blit(card, (x, y))
+
+    def draw_turn(self, surface):
+        x = config.lerp(0, config.TURN_TIME, config.SCREEN_WIDTH, 0, pygame.time.get_ticks() - self.current_turn_start,)
+        pygame.draw.rect(surface, self.current_turn_color, (self.planets_base_x, self.planets_base_y, x, 10))
 
     def handle_click(self, pos):
         for planet in self.planets:
