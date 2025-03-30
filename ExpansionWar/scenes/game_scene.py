@@ -48,6 +48,9 @@ class GameScene:
         self.dragging_card_offset = (0, 0)
         self.dragging_card_pos = (0, 0)
 
+        # Flag to ensure the enemy AI only acts once per enemy turn.
+        self.enemy_ai_done = False
+
     def draw(self, surface):
         surface.blit(self.info_bar_surface, (0,0))
         if self.current_turn_color == config.PLAYER_COLOR:
@@ -70,6 +73,13 @@ class GameScene:
             self.cards[self.dragging_card].draw(surface, self.dragging_card_pos[0], self.dragging_card_pos[1])
 
         # GAME LOGIC
+
+        # Enemy AI
+        if self.current_turn_color != config.PLAYER_COLOR and not self.enemy_ai_done:
+            self.run_enemy_ai_turn()
+
+        for color in sorted(set(planet.color for planet in self.planets if planet.color != config.NO_OWNER_COLOR and planet.color != config.PLAYER_COLOR)):
+            self.run_enemy_ai_continous(color)
 
         all_colors = sorted(set(planet.color for planet in self.planets))
         all_playing_colors = sorted(set(planet.color for planet in self.planets if planet.color != config.NO_OWNER_COLOR))
@@ -103,6 +113,53 @@ class GameScene:
             self.dragging_card = None
             self.current_turn_color = all_playing_colors[(idx) % len(all_playing_colors)]
             self.current_turn_start = pygame.time.get_ticks()
+
+            if self.current_turn_color != config.PLAYER_COLOR:
+                self.enemy_ai_done = False
+
+    def run_enemy_ai_turn(self):
+        enemy_planets = [planet for planet in self.planets if planet.color == self.current_turn_color]
+        if not enemy_planets:
+            self.enemy_ai_done = True
+            return
+
+        # Try to use a card upgrade.
+        if random.random() < 0.5:
+            chosen = random.choice(enemy_planets)
+            if chosen.value > config.SATELLITE_COST and chosen.satellite_upgrade < 6:
+                chosen.satellite_upgrade += 1
+                chosen.value -= config.SATELLITE_COST
+                logger.info(f"Enemy {self.current_turn_color} {chosen} upgraded Satellite, new upgrade: {chosen.satellite_upgrade}")
+            elif chosen.value > config.ROCKET_COST and chosen.rocket_upgrade < 4:
+                chosen.rocket_upgrade += 1
+                chosen.value -= config.ROCKET_COST
+                logger.info(f"Enemy {self.current_turn_color} {chosen} upgraded Rocket, new upgrade: {chosen.rocket_upgrade}")
+
+    def run_enemy_ai_continous(self, color):
+        # Try to make a new connection.
+        if random.random() > 0.005:
+            return
+
+        enemy_planets = [planet for planet in self.planets if planet.color == color]
+        source = random.choice(enemy_planets)
+        candidates = []
+        for candidate in self.planets:
+            if candidate != source:
+                # Check if there is already a connection between source and candidate.
+                already_connected = False
+                for connection in self.connections:
+                    if (connection.planet == source and connection.other_planet == candidate) or \
+                       (connection.planet == candidate and connection.other_planet == source):
+                        already_connected = True
+                        break
+                if not already_connected:
+                    candidates.append(candidate)
+        if candidates:
+            target = random.choice(candidates)
+            self.connections.append(Connection(source, target))
+            logger.info(f"Enemy connection made between {source} and {target}")
+
+        self.enemy_ai_done = True
 
     def draw_info(self, surface):
         y = (config.GAME_INFO_BAR_HEIGHT - self.info_bar_font.get_linesize()) / 2
