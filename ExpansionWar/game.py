@@ -30,7 +30,8 @@ def main():
                     config.current_scene.handle_click(event.pos)
 
         config.current_scene.draw(screen)
-        pygame_handler.draw(screen)
+        if config.ENABLE_PYGAME_LOG:
+            pygame_handler.draw(screen)
 
         pygame.display.flip()
         clock.tick(60)

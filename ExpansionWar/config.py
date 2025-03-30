@@ -11,6 +11,7 @@ def lerp(x1: float, x2: float, y1: float, y2: float, x: float):
     return ((y2 - y1) * x + x2 * y1 - x1 * y2) / (x2 - x1)
 
 ASSETS_FOLDER = "assets"
+ENABLE_PYGAME_LOG = False
 
 # Screen dimensions
 BASE_WIDTH = 400
