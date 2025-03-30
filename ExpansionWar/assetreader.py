@@ -1,6 +1,9 @@
 import io
+import tempfile
 import zipfile
 import logging
+import sys
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +20,17 @@ class AssetReader:
         return list(self.assets.keys())
 
     def read_asset(self, asset_name):
+        logger.debug(f'Reading asset {asset_name}')
         if asset_name.startswith("/"):
             asset_name = asset_name[1:]
         asset_name = "/" + asset_name
         if asset_name not in self.assets:
             raise KeyError(f"Asset '{asset_name}' not found in assets file ")
+        if sys.platform == "emscripten":
+            _, ext = os.path.splitext(asset_name)
+            with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
+                tmp.write(self.assets[asset_name])
+                return tmp.name
 
         return io.BytesIO(self.assets[asset_name])
 

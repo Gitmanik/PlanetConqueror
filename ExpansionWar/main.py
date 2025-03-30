@@ -1,3 +1,5 @@
+import asyncio
+
 import pygame
 import sys
 
@@ -15,7 +17,7 @@ screen = pygame.display.set_mode((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
 pygame.display.set_caption("Planet Conqueror")
 clock = pygame.time.Clock()
 
-def main():
+async def main():
     config.current_scene = GameScene(1)
 
     running = True
@@ -35,10 +37,7 @@ def main():
 
         pygame.display.flip()
         clock.tick(60)
-
-    pygame.quit()
-    sys.exit()
-
+        await asyncio.sleep(0)
 
 pygame_handler = None
 def setup_logger():
@@ -60,4 +59,4 @@ def setup_logger():
 if __name__ == "__main__":
     setup_logger()
     config.load_assets()
-    main()
+    asyncio.run(main())
