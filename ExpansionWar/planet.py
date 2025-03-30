@@ -1,7 +1,7 @@
 import random
 import pygame
 import config
-
+import math
 import logging
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,13 @@ class Planet:
 
         self.create_planet_surface()
 
+        # Satellite attributes:
+        self.satellite_upgrade = 0
+        scaled_satellite = pygame.image.load(config.assets['satellite.png'])
+        scaled_satellite = pygame.transform.scale(scaled_satellite, (scaled_satellite.get_width()/6, scaled_satellite.get_height()/6))
+        self.satellite_base_texture = pygame.transform.rotate(scaled_satellite, -90)
+        self.satellite_orbit_speed = 0.01
+
     def create_planet_surface(self):
         planet_surface = pygame.Surface((self.radius * 2, self.radius * 2), pygame.SRCALPHA)
 
@@ -61,7 +68,30 @@ class Planet:
         if self.color != config.NO_OWNER_COLOR:
             if current_ticks - self.value_start > self.add_value_every:
                 self.value_start = current_ticks
-                self.value +=1
+                self.value += 1 + self.satellite_upgrade
+
+        # Render orbiting satellites if upgrade is applied
+        if self.satellite_upgrade > 0:
+            planet_center_x = base_x + self.center_x
+            planet_center_y = base_y + self.center_y
+            orbit_radius = self.radius + (self.satellite_base_texture.get_width() // 2) + 5
+            orbit_offset = (current_ticks * self.satellite_orbit_speed) % 360
+
+            for i in range(self.satellite_upgrade):
+                base_angle_degrees = (360 / self.satellite_upgrade) * i
+                orbit_angle_degrees = base_angle_degrees + orbit_offset
+                orbit_angle_radians = math.radians(orbit_angle_degrees)
+                sat_x = planet_center_x + orbit_radius * math.cos(orbit_angle_radians)
+                sat_y = planet_center_y + orbit_radius * math.sin(orbit_angle_radians)
+                facing_angle = math.degrees(math.atan2(sat_y - planet_center_y, planet_center_x - sat_x))
+                rotated_satellite = pygame.transform.rotate(self.satellite_base_texture, facing_angle)
+                rotated_rect = rotated_satellite.get_rect(center=(sat_x, sat_y))
+
+                if current_ticks - self.value_start < 100:
+                    pygame.draw.line(screen, config.SATELLITE_RAY_COLOR, (sat_x, sat_y),
+                                     (planet_center_x, planet_center_y), 5)
+
+                screen.blit(rotated_satellite, rotated_rect)
 
         screen.blit(self.surface, (base_x + self.x, base_y + self.y))
         if self.selected:
