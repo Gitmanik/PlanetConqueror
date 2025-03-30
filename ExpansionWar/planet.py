@@ -3,6 +3,7 @@ import pygame
 import config
 import math
 import logging
+
 logger = logging.getLogger(__name__)
 
 class Planet:
@@ -21,7 +22,7 @@ class Planet:
         self.target_value = None
 
         self.value = 1
-        self.value_start = 60
+        self.value_start = 0
 
         self.add_value_every = 1 * 1000
         self.send_rocket_every = 1 * 1000
@@ -49,15 +50,15 @@ class Planet:
         planet_surface = pygame.Surface((self.radius * 2, self.radius * 2), pygame.SRCALPHA)
 
         planet_surface.blit(self.base_texture, (0, 0))
-        planet_surface.blit(self.light_texture, (0, 0), special_flags = pygame.BLEND_RGBA_MULT)
+        planet_surface.blit(self.light_texture, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         planet_surface.blit(self.noise_texture, (0, 0))
 
         colored_surface = pygame.Surface((self.radius * 2, self.radius * 2), pygame.SRCALPHA)
         colored_surface.fill(self.color)
 
         self.selected_surface = pygame.Surface((self.radius * 2, self.radius * 2), pygame.SRCALPHA)
-        self.selected_surface.fill((255,255,255,127))
-        self.selected_surface.blit(self.base_texture, (0, 0), special_flags = pygame.BLEND_RGBA_MULT)
+        self.selected_surface.fill((255, 255, 255, 127))
+        self.selected_surface.blit(self.base_texture, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
         planet_surface.blit(colored_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
