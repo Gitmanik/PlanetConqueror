@@ -21,10 +21,10 @@ class Planet:
         self.target_value = None
 
         self.value = 1
-        self.value_timer = 0
-        self.value_timer_target = 60
+        self.value_start = 60
 
-        self.send_rocket_every = 1000
+        self.add_value_every = 1 * 1000
+        self.send_rocket_every = 1 * 1000
 
         base_texture = random.choice([config.planet_assets[key] for key in config.planet_assets if "sphere" in key])
         noise_texture = random.choice([config.planet_assets[key] for key in config.planet_assets if "noise" in key])
@@ -57,10 +57,10 @@ class Planet:
         self.surface = planet_surface
 
     def draw(self, screen, base_x, base_y):
+        current_ticks = pygame.time.get_ticks()
         if self.color != config.NO_OWNER_COLOR:
-            self.value_timer += 1
-            if self.value_timer > self.value_timer_target:
-                self.value_timer = 0
+            if current_ticks - self.value_start > self.add_value_every:
+                self.value_start = current_ticks
                 self.value +=1
 
         screen.blit(self.surface, (base_x + self.x, base_y + self.y))
