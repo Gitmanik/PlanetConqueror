@@ -160,7 +160,8 @@ class GameScene:
         for connection in self.connections:
             if connection.is_clicked(self.planets_base_x, self.planets_base_y, pos):
                 logger.debug(f"Connection {connection} clicked")
-                self.connections.remove(connection)
+                if connection.planet.color == config.PLAYER_COLOR:
+                    self.connections.remove(connection)
                 return True
 
         if self.current_turn_color == config.PLAYER_COLOR:
