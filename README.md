@@ -5,12 +5,12 @@ Planet conqueror is a 'expansion war' game made in Python and Pygame.
 ## Tasks
 - [x] **Implement the game scene in QGraphicsScene** (1 point)
 - [x] **Inheritance from QGraphicsItem – units as separate objects** (1 point)
-- [ ] **Interactivity of units – clickability, dragging, context menu** (3 points)
-- [ ] **Unit control – selection from the menu and movement on the game grid** (2 points)
+- [x] **Interactivity of units – clickability, dragging, context menu** (3 points)
+- [x] **Unit control – selection from the menu and movement on the game grid** (2 points)
 - [x] **Loading unit graphics from .rc file** (1 point)
 - [ ] **Highlighting possible moves and attacks depending on the multiplier** (2 points)
-- [ ] **Combat system considering levels, unit multiplication, and special battle effects** (3 points)
-- [ ] **Turn mechanism and timer for making a move (turn clock)** (2 points)
+- [x] **Combat system considering levels, unit multiplication, and special battle effects** (3 points)
+- [x] **Turn mechanism and timer for making a move (turn clock)** (2 points)
 - [ ] **Strategic suggestion system based on AI (e.g., best move of the turn)** (1 point)
 - [ ] **Unit control via camera gestures (clicking with hand movement)** (2 points)
 - [x] **Logger displaying messages on the console and in the QTextEdit interface with rotating logging** (1 point)
@@ -24,3 +24,4 @@ Planet conqueror is a 'expansion war' game made in Python and Pygame.
 
 ## Used libraries
 - Pygame
+- Pygbag
