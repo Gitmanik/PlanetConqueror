@@ -1,8 +1,30 @@
 ## Planet Conqueror - try this game [here](https://gitmanik.github.io/PlanetConqueror/)!
 
-Planet conqueror is a 'expansion war' game made in Python and Pygame.
+**Planet Conqueror** is a Python game built using **Pygame**, inspired by the mobile game *Cell Expansion Wars*.  
+The action takes place in outer space, where players conquer planets, launch satellites, and send units between worlds using upgradeable rockets.
 
-## Tasks
+The gameplay blends both **real-time** and **turn-based** mechanics, creating a unique and strategic experience.  
+Levels are **procedurally generated**, ensuring a fresh challenge every time you play.
+
+## How to play
+
+- **Click on your planet** (green), then **click on an enemy or neutral (gray) planet** to create a connection and send units.
+- **Drag a card** onto one of your planets to activate its effect.
+
+Use quick thinking and tactical moves to outmaneuver your opponent and take over the galaxy!
+
+
+## Used graphics
+- [Kenney Planets](https://kenney.nl/assets/planets)
+- [Kenney Space Shooter Extension](https://kenney.nl/assets/space-shooter-extension)
+- [Kenney Future Narrow Font](https://kenney.nl/assets/kenney-fonts)
+- [Kenney Playing Cards Pack](https://kenney.nl/assets/playing-cards-pack)
+
+## Used libraries
+- Pygame
+- Pygbag
+
+### Tasks
 - [x] **Implement the game scene in QGraphicsScene** (1 point)
 - [x] **Inheritance from QGraphicsItem – units as separate objects** (1 point)
 - [x] **Interactivity of units – clickability, dragging, context menu** (3 points)
@@ -16,13 +38,3 @@ Planet conqueror is a 'expansion war' game made in Python and Pygame.
 - [x] **Logger displaying messages on the console and in the QTextEdit interface with rotating logging** (1 point)
     * Press ` (backquote) to toggle
 - [ ] **Switching between 2D and 3D view (including rendering units in 3D)** (4 points)
-
-## Used graphics
-- [Kenney Planets](https://kenney.nl/assets/planets)
-- [Kenney Space Shooter Extension](https://kenney.nl/assets/space-shooter-extension)
-- [Kenney Future Narrow Font](https://kenney.nl/assets/kenney-fonts)
-- [Kenney Playing Cards Pack](https://kenney.nl/assets/playing-cards-pack)
-
-## Used libraries
-- Pygame
-- Pygbag
