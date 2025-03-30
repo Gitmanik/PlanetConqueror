@@ -16,10 +16,14 @@ class GameScene:
         self.rockets = []
         self.selected_planet = None
         self.level = level
-        self.info_bar_height = config.GAME_INFO_BAR_HEIGHT
+
+        self.year = 2100
 
         self.planets_base_x = 0
-        self.planets_base_y = self.info_bar_height
+        self.planets_base_y = config.GAME_INFO_BAR_HEIGHT
+        self.info_bar_surface = pygame.Surface((config.SCREEN_WIDTH, config.GAME_INFO_BAR_HEIGHT))
+        self.info_bar_surface.set_alpha(200)
+        self.info_bar_surface.fill((0, 0, 0))
 
         self.create_level()
 
@@ -30,6 +34,8 @@ class GameScene:
         self.rockets.remove(rocket)
 
     def draw(self, surface):
+        surface.blit(self.info_bar_surface, (0,0))
+        self.draw_info(surface)
 
         colors = set(planet.color for planet in self.planets)
         if len(colors) == 1: # Win condition
@@ -58,7 +64,6 @@ class GameScene:
                                  (self.planets_base_x + planet.center_x, self.planets_base_y + planet.center_y),
                                  (self.planets_base_x + connected_planet.center_x, self.planets_base_y + connected_planet.center_y), 5)
 
-        self.draw_ui(surface)
 
         for rocket in self.rockets:
             rocket.draw(self.planets_base_x, self.planets_base_y, surface)
@@ -66,14 +71,23 @@ class GameScene:
         for planet in self.planets:
             planet.draw(surface, self.planets_base_x, self.planets_base_y)
 
-    def draw_ui(self, surface):
+    def draw_info(self, surface):
         font = pygame.font.Font(config.FONT_NAME, config.PLANET_TEXT_SIZE)
+        y = (config.GAME_INFO_BAR_HEIGHT - font.get_linesize()) / 2
+
         stage_text = font.render(f"Level {self.level}", True, (255, 255, 255))
-        surface.blit(stage_text, (20, 20))
+        stage_x = 20
+
+        year_text = font.render(f"Year {self.year}", True, (255,255,255))
+
+        year_x = config.SCREEN_WIDTH - year_text.get_width() - stage_x
+
+        surface.blit(stage_text, (stage_x, y))
+        surface.blit(year_text, (year_x, y))
 
     def handle_click(self, pos):
         for planet in self.planets:
-            if planet.is_clicked(0, self.info_bar_height, pos):
+            if planet.is_clicked(self.planets_base_x, self.planets_base_y, pos):
                 if self.selected_planet is None:
                     if planet.color != config.PLAYER_COLOR:
                         config.logger.debug("Enemy planet clicked")
