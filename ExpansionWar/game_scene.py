@@ -37,8 +37,8 @@ class GameScene:
         self.current_turn_start = pygame.time.get_ticks()
         self.create_level()
 
-        self.card_rects = self.get_card_rects()
         self.card_image = pygame.image.load(config.assets["card_empty.png"])
+        self.card_rects = self.get_card_rects()
         card_rect = self.card_rects[0]
         self.card_image = pygame.transform.scale(self.card_image, (card_rect.width, card_rect.height))
         self.dragging_card = None
@@ -184,8 +184,8 @@ class GameScene:
     def get_card_rects(self):
         total_cards = 4
         spacing = 0
-        card_width = (config.SCREEN_WIDTH - 3 * spacing) // total_cards
         card_height = int(3/4 * config.CARDS_BAR_HEIGHT)
+        card_width = int(self.card_image.get_rect().w * (card_height / self.card_image.get_rect().h))
         total_width = total_cards * card_width + 3 * spacing
         start_x = (config.SCREEN_WIDTH - total_width) // 2
         y = self.planets_base_y + config.GAME_SCENE_HEIGHT + (config.CARDS_BAR_HEIGHT - card_height) // 2
