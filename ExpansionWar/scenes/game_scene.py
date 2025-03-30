@@ -134,6 +134,7 @@ class GameScene:
                 chosen.rocket_upgrade += 1
                 chosen.value -= config.ROCKET_COST
                 logger.info(f"Enemy {self.current_turn_color} {chosen} upgraded Rocket, new upgrade: {chosen.rocket_upgrade}")
+        self.enemy_ai_done = True
 
     def run_enemy_ai_continous(self, color):
         # Try to make a new connection.
