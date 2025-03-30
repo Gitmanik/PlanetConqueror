@@ -4,6 +4,7 @@ import random
 import config
 import pygame
 
+from card import Card
 from connection import Connection
 from planet import Planet
 
@@ -37,15 +38,12 @@ class GameScene:
         self.current_turn_start = pygame.time.get_ticks()
         self.create_level()
 
-        self.card_textures = []
-        self.card_textures.append(pygame.image.load(config.assets["card_satellite.png"]))
-        self.card_textures.append(pygame.image.load(config.assets["card_rocket.png"]))
+        self.cards = []
+        self.cards.append(Card(config.CARDS_BAR_HEIGHT * 3 / 4 * 3 / 4, config.CARDS_BAR_HEIGHT * 3 / 4, pygame.image.load(config.assets["satellite.png"]), 10))
+        self.cards.append(Card(config.CARDS_BAR_HEIGHT * 3 / 4 * 3 / 4, config.CARDS_BAR_HEIGHT * 3 / 4, pygame.image.load(config.assets["Rockets/spaceRockets_002.png"]), 5))
 
         self.card_rects = self.get_card_rects()
-        card_rect = self.card_rects[0]
 
-        for i, texture in enumerate(self.card_textures):
-            self.card_textures[i] = pygame.transform.scale(texture, (card_rect.width, card_rect.height))
         self.dragging_card = None
         self.dragging_card_offset = (0, 0)
         self.dragging_card_pos = (0, 0)
@@ -69,7 +67,7 @@ class GameScene:
             planet.draw(surface, self.planets_base_x, self.planets_base_y)
 
         if self.dragging_card is not None:
-            surface.blit(self.card_textures[self.dragging_card], self.dragging_card_pos)
+            self.cards[self.dragging_card].draw(surface, self.dragging_card_pos[0], self.dragging_card_pos[1])
 
         # GAME LOGIC
 
@@ -119,10 +117,10 @@ class GameScene:
         surface.blit(year_text, (year_x, y))
 
     def draw_cards(self, surface):
-        for i, rect in enumerate(self.card_rects):
+        for i, card in enumerate(self.cards):
             if self.dragging_card == i:
                 continue
-            surface.blit(self.card_textures[i], rect)
+            card.draw(surface, self.card_rects[i].x, self.card_rects[i].y)
 
     def draw_turn(self, surface):
         x = config.lerp(0, config.TURN_TIME, config.SCREEN_WIDTH, 0, pygame.time.get_ticks() - self.current_turn_start)
@@ -214,10 +212,13 @@ class GameScene:
 
     def get_card_rects(self):
         total_cards = 2
-        spacing = 0
-        card_height = int(3/4 * config.CARDS_BAR_HEIGHT)
-        card_width = int(self.card_textures[0].get_rect().w * (card_height / self.card_textures[0].get_rect().h))
-        total_width = total_cards * card_width + 3 * spacing
+        spacing = 40
+
+        card = self.cards[0]
+        card_width = card.card_surface.get_width()
+        card_height = card.card_surface.get_height()
+
+        total_width = total_cards * card_width + (total_cards - 1 ) * spacing
         start_x = (config.SCREEN_WIDTH - total_width) // 2
         y = self.planets_base_y + config.GAME_SCENE_HEIGHT + (config.CARDS_BAR_HEIGHT - card_height) // 2
         rects = []
