@@ -1,5 +1,8 @@
 name: pygbag_build
-on: [workflow_dispatch]
+on:
+  push:
+    branches:
+      - main
 
 
 jobs:
@@ -17,4 +20,4 @@ jobs:
       uses: JamesIves/github-pages-deploy-action@4.1.7
       with:
         branch: gh-pages
-        folder: build/web
+        folder: ExpansionWar/build/web
