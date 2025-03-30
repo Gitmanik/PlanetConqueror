@@ -1,10 +1,9 @@
 import asyncio
 
 import pygame
-import sys
 
 import config
-from game_scene import GameScene
+from scenes.menu_scene import MenuScene
 
 import logging
 logger = logging.getLogger(__name__)
@@ -18,7 +17,7 @@ pygame.display.set_caption("Planet Conqueror")
 clock = pygame.time.Clock()
 
 async def main():
-    config.current_scene = GameScene(1, 2100)
+    config.current_scene = MenuScene()
 
     running = True
     while running:
