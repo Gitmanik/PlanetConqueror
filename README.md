@@ -1,5 +1,17 @@
 ## Planet Conqueror - try this game [here](https://gitmanik.github.io/PlanetConqueror/)!
 
+<p align=center>
+<table>
+<tr>
+<td>
+<img src="Screenshots/Screenshot2.png" height=700px>
+</td>
+<td>
+<img src="Screenshots/Screenshot1.png" height=700px>
+</td>
+</tr></table>
+</p>
+
 **Planet Conqueror** is a Python game built using **Pygame**, inspired by the mobile game *Cell Expansion Wars*.  
 The action takes place in outer space, where players conquer planets, launch satellites, and send units between worlds using upgradeable rockets.
 
