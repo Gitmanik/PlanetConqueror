@@ -22,10 +22,10 @@ class Connection:
     def draw(self, base_x, base_y, surface):
         current_ticks = pygame.time.get_ticks()
 
-        if self.planet.value > 0 and current_ticks - self.last_ticks > self.planet.send_rocket_every:
+        if self.planet.value > self.planet.rocket_upgrade and current_ticks - self.last_ticks > self.planet.send_rocket_every:
             self.last_ticks = current_ticks
             self.rockets.append(Rocket(self, self.planet, self.other_planet))
-            self.planet.value -= 1
+            self.planet.value -= self.planet.rocket_upgrade
 
         pygame.draw.line(surface, config.CONNECTION_COLOR,
                          (base_x + self.planet.center_x, base_y + self.planet.center_y),

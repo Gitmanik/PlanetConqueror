@@ -26,6 +26,7 @@ class Planet:
 
         self.add_value_every = 1 * 1000
         self.send_rocket_every = 1 * 1000
+        self.rocket_upgrade = 1
 
         base_texture = random.choice([config.planet_assets[key] for key in config.planet_assets if "sphere" in key])
         noise_texture = random.choice([config.planet_assets[key] for key in config.planet_assets if "noise" in key])

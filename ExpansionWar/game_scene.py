@@ -172,6 +172,16 @@ class GameScene:
             for planet in self.planets:
                 if planet.is_clicked(self.planets_base_x, self.planets_base_y, pos):
                     config.logger.info(f"Card dropped on planet {planet}")
+                    if self.dragging_card == 0:
+                        if planet.color == config.PLAYER_COLOR and planet.value > 10 and planet.satellite_upgrade < 6:
+                            planet.satellite_upgrade += 1
+                            planet.value -= 10
+                            logger.info(f"Upgraded Satellite on planet {planet}, new value: {planet.satellite_upgrade}")
+                    if self.dragging_card == 1:
+                        if planet.color == config.PLAYER_COLOR and planet.value > 5 and planet.rocket_upgrade < 4:
+                            planet.rocket_upgrade += 1
+                            planet.value -= 5
+                            logger.info(f"Upgraded Rocket on planet {planet}, new value: {planet.rocket_upgrade}")
                     break
 
             self.dragging_card = None
@@ -182,7 +192,7 @@ class GameScene:
         return False
 
     def get_card_rects(self):
-        total_cards = 4
+        total_cards = 2
         spacing = 0
         card_height = int(3/4 * config.CARDS_BAR_HEIGHT)
         card_width = int(self.card_image.get_rect().w * (card_height / self.card_image.get_rect().h))

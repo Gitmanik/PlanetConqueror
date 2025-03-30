@@ -13,7 +13,7 @@ def lerp(x1: float, x2: float, y1: float, y2: float, x: float):
 ENABLE_PYGAME_LOG = False
 PYGAME_LOG_LIMIT = 50
 
-TURN_TIME = 2 * 1000
+TURN_TIME = 10 * 1000
 
 # Screen dimensions
 BASE_WIDTH = 400

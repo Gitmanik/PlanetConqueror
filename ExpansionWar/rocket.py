@@ -7,13 +7,12 @@ logger = logging.getLogger(__name__)
 
 class Rocket:
     def __init__(self, parent, planet, other_planet):
-        if planet.color == other_planet.color:
-            self.rocket_texture = config.rocket_assets["spaceRockets_001"]
-        else:
-            self.rocket_texture = config.rocket_assets["spaceRockets_002"]
 
-        self.rocket_texture = pygame.transform.scale(self.rocket_texture, (20 * 2, 20 * 2))
+        assert(planet.rocket_upgrade <= 4)
+        self.value = planet.rocket_upgrade
 
+        self.rocket_texture = config.rocket_assets[f"spaceRockets_00{self.value}"]
+        self.rocket_texture = pygame.transform.scale(self.rocket_texture, (self.rocket_texture.get_width()/10, self.rocket_texture.get_height()/10))
         self.rocket_texture = pygame.transform.rotate(self.rocket_texture, -math.degrees(math.atan2(other_planet.center_y - planet.center_y, other_planet.center_x - planet.center_x)) - 90)
 
         self.parent = parent
@@ -31,12 +30,12 @@ class Rocket:
 
         if self.current_time >= self.target_time:
             if self.planet.color == self.other_planet.color:
-                self.other_planet.value += 1
+                self.other_planet.value += self.value
             elif self.planet.color != self.planet:
-                self.other_planet.value -= 1
+                self.other_planet.value -= self.value
                 if self.other_planet.value <= 0:
                     self.other_planet.set_color(self.planet.color)
-                    self.other_planet.value = 1
+                    self.other_planet.value = self.value
 
             self.parent.rocket_finished(self)
 
