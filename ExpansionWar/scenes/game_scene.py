@@ -105,8 +105,8 @@ class GameScene:
             return
 
         # Turn time
-        if pygame.time.get_ticks() - self.current_turn_start > config.TURN_TIME:
-            idx = all_playing_colors.index(self.current_turn_color) + 1
+        if pygame.time.get_ticks() - self.current_turn_start > config.TURN_TIME or self.current_turn_color not in all_playing_colors:
+            idx = all_playing_colors.index(self.current_turn_color) + 1 if self.current_turn_color in all_playing_colors else 0
             if idx >= len(all_playing_colors):
                 self.year += 1
 
