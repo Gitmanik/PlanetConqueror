@@ -27,10 +27,10 @@ class Connection:
             self.rockets.append(Rocket(self, self.planet, self.other_planet))
             self.planet.value -= self.planet.rocket_upgrade
 
-        pygame.draw.line(surface, config.CONNECTION_COLOR,
+        pygame.draw.line(surface, self.planet.color,
                          (base_x + self.planet.center_x, base_y + self.planet.center_y),
                          (base_x + self.other_planet.center_x, base_y + self.other_planet.center_y),
-                         self.line_width)
+                         self.line_width + 5 * self.planet.rocket_upgrade)
 
         for rocket in self.rockets:
             rocket.draw(base_x, base_y, surface)
