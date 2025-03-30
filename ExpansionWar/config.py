@@ -45,7 +45,6 @@ GAME_SCENE_HEIGHT = SCREEN_HEIGHT - GAME_INFO_BAR_HEIGHT - CARDS_BAR_HEIGHT
 
 assets = None
 background = None
-card = None
 planet_assets = dict()
 rocket_assets = dict()
 FONT_NAME = "Kenney Future Narrow.ttf"
@@ -53,7 +52,6 @@ FONT_NAME = "Kenney Future Narrow.ttf"
 def load_assets():
     global assets
     global background
-    global card
 
     logger.info("Loading assets...")
 
@@ -73,8 +71,6 @@ def load_assets():
 
     background = pygame.image.load(assets["Background.png"])
     background = pygame.transform.scale(background, [SCREEN_WIDTH, SCREEN_HEIGHT])
-    card = pygame.image.load(assets["card_empty.png"])
-
 
 current_scene = None
 def set_scene(new_scene):

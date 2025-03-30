@@ -37,6 +37,14 @@ class GameScene:
         self.current_turn_start = pygame.time.get_ticks()
         self.create_level()
 
+        self.card_rects = self.get_card_rects()
+        self.card_image = pygame.image.load(config.assets["card_empty.png"])
+        card_rect = self.card_rects[0]
+        self.card_image = pygame.transform.scale(self.card_image, (card_rect.width, card_rect.height))
+        self.dragging_card = None
+        self.dragging_card_offset = (0, 0)
+        self.dragging_card_pos = (0, 0)
+
     def draw(self, surface):
         surface.blit(self.info_bar_surface, (0,0))
         if self.current_turn_color == config.PLAYER_COLOR:
@@ -55,6 +63,8 @@ class GameScene:
         for planet in self.planets:
             planet.draw(surface, self.planets_base_x, self.planets_base_y)
 
+        if self.dragging_card is not None:
+            surface.blit(self.card_image, self.dragging_card_pos)
 
         # GAME LOGIC
 
@@ -77,6 +87,7 @@ class GameScene:
             if idx >= len(all_playing_colors):
                 self.year += 1
 
+            self.dragging_card = None
             self.current_turn_color = all_playing_colors[(idx) % len(all_playing_colors)]
             self.current_turn_start = pygame.time.get_ticks()
 
@@ -94,22 +105,10 @@ class GameScene:
         surface.blit(year_text, (year_x, y))
 
     def draw_cards(self, surface):
-        total_cards = 4
-        spacing = 0
-
-        card_width = (config.SCREEN_WIDTH - 3*spacing) // total_cards
-        card_height = 3/4 * config.CARDS_BAR_HEIGHT
-
-        total_width = total_cards * card_width + 3 * spacing
-        start_x = (config.SCREEN_WIDTH - total_width) // 2
-
-        card = pygame.transform.scale(config.card, (card_width, card_height))
-
-        y = self.planets_base_y + config.GAME_SCENE_HEIGHT + (config.CARDS_BAR_HEIGHT - card_height) // 2
-
-        for i in range(total_cards):
-            x = start_x + i * (card_width + spacing)
-            surface.blit(card, (x, y))
+        for i, rect in enumerate(self.card_rects):
+            if self.dragging_card == i:
+                continue
+            surface.blit(self.card_image, rect)
 
     def draw_turn(self, surface):
         x = config.lerp(0, config.TURN_TIME, config.SCREEN_WIDTH, 0, pygame.time.get_ticks() - self.current_turn_start,)
@@ -148,7 +147,52 @@ class GameScene:
                 self.connections.remove(connection)
                 return True
 
+        if self.current_turn_color == config.PLAYER_COLOR:
+            for i, rect in enumerate(self.get_card_rects()):
+                if rect.collidepoint(pos):
+                    self.dragging_card = i
+                    self.dragging_card_offset = (pos[0] - rect.x, pos[1] - rect.y)
+                    self.dragging_card_pos = (rect.x, rect.y)
+                    return True
+
         return False
+
+    def handle_mouse_motion(self, pos):
+        if self.dragging_card is not None:
+            new_x = pos[0] - self.dragging_card_offset[0]
+            new_y = pos[1] - self.dragging_card_offset[1]
+            self.dragging_card_pos = (new_x, new_y)
+            return True
+
+        return False
+
+    def handle_mouse_up(self, pos):
+        if self.dragging_card is not None:
+            for planet in self.planets:
+                if planet.is_clicked(self.planets_base_x, self.planets_base_y, pos):
+                    config.logger.info(f"Card dropped on planet {planet}")
+                    break
+
+            self.dragging_card = None
+            self.dragging_card_offset = (0, 0)
+            self.dragging_card_pos = (0, 0)
+            return True
+
+        return False
+
+    def get_card_rects(self):
+        total_cards = 4
+        spacing = 0
+        card_width = (config.SCREEN_WIDTH - 3 * spacing) // total_cards
+        card_height = int(3/4 * config.CARDS_BAR_HEIGHT)
+        total_width = total_cards * card_width + 3 * spacing
+        start_x = (config.SCREEN_WIDTH - total_width) // 2
+        y = self.planets_base_y + config.GAME_SCENE_HEIGHT + (config.CARDS_BAR_HEIGHT - card_height) // 2
+        rects = []
+        for i in range(total_cards):
+            x = start_x + i * (card_width + spacing)
+            rects.append(pygame.Rect(x, y, card_width, card_height))
+        return rects
 
     def create_level(self):
         enemy_ct = round(1.5**self.level-0.5)

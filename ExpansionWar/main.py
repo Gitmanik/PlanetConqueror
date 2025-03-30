@@ -30,6 +30,11 @@ async def main():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
                     config.current_scene.handle_click(event.pos)
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    config.current_scene.handle_mouse_up(event.pos)
+            elif event.type == pygame.MOUSEMOTION:
+                config.current_scene.handle_mouse_motion(event.pos)
 
         config.current_scene.draw(screen)
         if config.ENABLE_PYGAME_LOG:
