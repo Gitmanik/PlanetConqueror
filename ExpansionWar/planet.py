@@ -65,7 +65,7 @@ class Planet:
         if self.selected:
             screen.blit(self.selected_surface, (base_x + self.x, base_y + self.y))
 
-        font = pygame.font.Font(config.FONT_NAME, 35)
+        font = pygame.font.Font(config.assets[config.FONT_NAME], 35)
         if self.target_value:
             text = font.render(f"{self.value}/{self.target_value}", True, (255, 255, 255))
         else:

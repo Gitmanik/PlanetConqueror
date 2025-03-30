@@ -1,7 +1,7 @@
-import os
 import pygame
-
 import logging
+from assetreader import AssetReader
+
 logger = logging.getLogger(__name__)
 
 def scale(val, src, dst):
@@ -10,10 +10,8 @@ def scale(val, src, dst):
 def lerp(x1: float, x2: float, y1: float, y2: float, x: float):
     return ((y2 - y1) * x + x2 * y1 - x1 * y2) / (x2 - x1)
 
-ASSETS_FOLDER = "assets"
 ENABLE_PYGAME_LOG = False
 
-FONT_NAME = os.path.join(ASSETS_FOLDER, "Kenney Future Narrow.ttf")
 TURN_TIME = 2 * 1000
 
 # Screen dimensions
@@ -44,27 +42,38 @@ PLANET_TEXT_SIZE = int(scale(PLANET_TEXT_SIZE, (0, BASE_HEIGHT), (0, SCREEN_HEIG
 GAME_SCENE_WIDTH = SCREEN_WIDTH
 GAME_SCENE_HEIGHT = SCREEN_HEIGHT - GAME_INFO_BAR_HEIGHT - CARDS_BAR_HEIGHT
 
-background = pygame.image.load(os.path.join(ASSETS_FOLDER, "Background.png"))
-background = pygame.transform.scale(background, [SCREEN_WIDTH, SCREEN_HEIGHT])
-
+assets = None
+background = None
+card = None
 planet_assets = dict()
 rocket_assets = dict()
-
-card = pygame.image.load(os.path.join(ASSETS_FOLDER, "card_empty.png"))
+FONT_NAME = "Kenney Future Narrow.ttf"
 
 def load_assets():
-    logger.debug("Loading assets...")
-    for file in os.listdir(os.path.join(ASSETS_FOLDER, "PlanetParts")):
-        if not file.endswith(".png"):
-            continue
-        filename = file.split(".")[0]
-        planet_assets[filename] = pygame.image.load(os.path.join(ASSETS_FOLDER, "PlanetParts", file))
+    global assets
+    global background
+    global card
 
-    for file in os.listdir(os.path.join(ASSETS_FOLDER, "Rockets")):
+    logger.info("Loading assets...")
+
+    assets = AssetReader("assets.zip")
+
+    for file in assets.find("PlanetParts"):
         if not file.endswith(".png"):
             continue
         filename = file.split(".")[0]
-        rocket_assets[filename] = pygame.image.load(os.path.join(ASSETS_FOLDER, "Rockets", file))
+        planet_assets[filename] = pygame.image.load(assets[f"PlanetParts/{file}"])
+
+    for file in assets.find("Rockets"):
+        if not file.endswith(".png"):
+            continue
+        filename = file.split(".")[0]
+        rocket_assets[filename] = pygame.image.load(assets[f"Rockets/{file}"])
+
+    background = pygame.image.load(assets["Background.png"])
+    background = pygame.transform.scale(background, [SCREEN_WIDTH, SCREEN_HEIGHT])
+    card = pygame.image.load(assets["card_empty.png"])
+
 
 current_scene = None
 def set_scene(new_scene):

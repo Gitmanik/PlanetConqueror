@@ -9,7 +9,7 @@ class PygameHandler(logging.Handler):
         super().__init__()
         self.max_lines = max_lines
         self.log_lines = []
-        self.font = pygame.font.Font(config.FONT_NAME, 20)
+        self.font = pygame.font.Font(None, 20)
 
     def emit(self, record):
         try:

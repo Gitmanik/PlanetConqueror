@@ -79,7 +79,7 @@ class GameScene:
             self.current_turn_start = pygame.time.get_ticks()
 
     def draw_info(self, surface):
-        font = pygame.font.Font(config.FONT_NAME, config.PLANET_TEXT_SIZE)
+        font = pygame.font.Font(config.assets[config.FONT_NAME], config.PLANET_TEXT_SIZE)
         y = (config.GAME_INFO_BAR_HEIGHT - font.get_linesize()) / 2
 
         stage_text = font.render(f"Level {self.level}", True, (255, 255, 255))
