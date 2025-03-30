@@ -90,7 +90,8 @@ class GameScene:
                 config.set_scene(GameScene(self.level + 1, self.year))
             else:
                 config.logger.info("lose")
-                config.set_scene(GameScene(self.level, self.year_start))
+                from scenes.menu_scene import MenuScene
+                config.set_scene(MenuScene())
             return
 
         # Turn time
