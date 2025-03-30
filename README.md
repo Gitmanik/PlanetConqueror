@@ -42,6 +42,14 @@ pip install -r requirements.txt
 pygbag --ume_block 0 --build ExpansionWar/ 
 ```
 
+## Building and running locally
+``` bash
+pip install -r requirements.txt
+cd ExpansionWar
+python3 main.py
+```
+
+
 ### Tasks
 - [x] **Implement the game scene in QGraphicsScene** (1 point)
 - [x] **Inheritance from QGraphicsItem – units as separate objects** (1 point)
