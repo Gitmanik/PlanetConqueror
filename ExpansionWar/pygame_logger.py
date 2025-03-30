@@ -1,12 +1,15 @@
 import pygame
 import logging
 
+import config
+
+
 class PygameHandler(logging.Handler):
     def __init__(self, max_lines=10):
         super().__init__()
         self.max_lines = max_lines
         self.log_lines = []
-        self.font = pygame.font.SysFont(None, 20)
+        self.font = pygame.font.Font(config.FONT_NAME, 20)
 
     def emit(self, record):
         try:

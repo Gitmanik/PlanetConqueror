@@ -67,7 +67,7 @@ class GameScene:
             planet.draw(surface, self.planets_base_x, self.planets_base_y)
 
     def draw_ui(self, surface):
-        font = pygame.font.SysFont('Arial', config.PLANET_TEXT_SIZE)
+        font = pygame.font.Font(config.FONT_NAME, config.PLANET_TEXT_SIZE)
         stage_text = font.render(f"Level {self.level}", True, (255, 255, 255))
         surface.blit(stage_text, (20, 20))
 
