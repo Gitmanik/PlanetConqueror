@@ -36,6 +36,12 @@ Use quick thinking and tactical moves to outmaneuver your opponent and take over
 - Pygame
 - Pygbag
 
+## Building and packaging via Pygbag
+```bash
+pip install -r requirements.txt
+pygbag --ume_block 0 --build ExpansionWar/ 
+```
+
 ### Tasks
 - [x] **Implement the game scene in QGraphicsScene** (1 point)
 - [x] **Inheritance from QGraphicsItem – units as separate objects** (1 point)
