@@ -51,7 +51,7 @@ def setup_logger():
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
-    pygame_handler = PygameHandler(10)
+    pygame_handler = PygameHandler(config.PYGAME_LOG_LIMIT)
     pygame_handler.setLevel(logging.DEBUG)
     pygame_handler.setFormatter(formatter)
     logger.addHandler(pygame_handler)
