@@ -34,6 +34,8 @@ class Planet:
         self.noise_texture = pygame.transform.scale(noise_texture, (radius * 2, radius * 2))
         self.light_texture = pygame.transform.scale(light_texture, (radius * 2, radius * 2))
 
+        self.font = pygame.font.Font(config.assets[config.FONT_NAME], 35)
+
         self.create_planet_surface()
 
     def create_planet_surface(self):
@@ -65,11 +67,10 @@ class Planet:
         if self.selected:
             screen.blit(self.selected_surface, (base_x + self.x, base_y + self.y))
 
-        font = pygame.font.Font(config.assets[config.FONT_NAME], 35)
         if self.target_value:
-            text = font.render(f"{self.value}/{self.target_value}", True, (255, 255, 255))
+            text = self.font.render(f"{self.value}/{self.target_value}", True, (255, 255, 255))
         else:
-            text = font.render(f"{self.value}", True, (255, 255, 255))
+            text = self.font.render(f"{self.value}", True, (255, 255, 255))
 
         text_rect = text.get_rect(center=(base_x + self.center_x, base_y + self.center_y))
         screen.blit(text, text_rect)

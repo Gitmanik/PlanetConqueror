@@ -27,6 +27,8 @@ class GameScene:
         self.info_bar_surface = pygame.Surface((config.SCREEN_WIDTH, config.GAME_INFO_BAR_HEIGHT))
         self.info_bar_surface.set_alpha(200)
         self.info_bar_surface.fill((0, 0, 0))
+        self.info_bar_font = pygame.font.Font(config.assets[config.FONT_NAME], config.PLANET_TEXT_SIZE)
+
         self.cards_surface = pygame.Surface((config.SCREEN_WIDTH, config.CARDS_BAR_HEIGHT))
         self.cards_surface.set_alpha(200)
         self.cards_surface.fill((0, 0, 0))
@@ -79,13 +81,12 @@ class GameScene:
             self.current_turn_start = pygame.time.get_ticks()
 
     def draw_info(self, surface):
-        font = pygame.font.Font(config.assets[config.FONT_NAME], config.PLANET_TEXT_SIZE)
-        y = (config.GAME_INFO_BAR_HEIGHT - font.get_linesize()) / 2
+        y = (config.GAME_INFO_BAR_HEIGHT - self.info_bar_font.get_linesize()) / 2
 
-        stage_text = font.render(f"Level {self.level}", True, (255, 255, 255))
+        stage_text = self.info_bar_font.render(f"Level {self.level}", True, (255, 255, 255))
         stage_x = 20
 
-        year_text = font.render(f"Year {self.year}", True, (255,255,255))
+        year_text = self.info_bar_font.render(f"Year {self.year}", True, (255,255,255))
 
         year_x = config.SCREEN_WIDTH - year_text.get_width() - stage_x
 
