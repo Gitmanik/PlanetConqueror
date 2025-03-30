@@ -110,7 +110,6 @@ class GameScene:
         stage_x = 20
 
         year_text = self.info_bar_font.render(f"Year {self.year}", True, (255,255,255))
-
         year_x = config.SCREEN_WIDTH - year_text.get_width() - stage_x
 
         surface.blit(stage_text, (stage_x, y))
@@ -219,7 +218,7 @@ class GameScene:
         card_width = card.card_surface.get_width()
         card_height = card.card_surface.get_height()
 
-        total_width = total_cards * card_width + (total_cards - 1 ) * spacing
+        total_width = total_cards * card_width + (total_cards - 1) * spacing
         start_x = (config.SCREEN_WIDTH - total_width) // 2
         y = self.planets_base_y + config.GAME_SCENE_HEIGHT + (config.CARDS_BAR_HEIGHT - card_height) // 2
         rects = []
@@ -229,8 +228,8 @@ class GameScene:
         return rects
 
     def create_level(self):
-        enemy_ct = round(1.5**self.level-0.5)
-        enemy_planets = round(1.5**self.level-0.5)
+        enemy_ct = round(1.5**self.level - 0.5)
+        enemy_planets = round(1.5**self.level - 0.5)
 
         config.logger.info(f"Creating level {self.level}: enemy_ct: {enemy_ct}, enemy_planets: {enemy_planets}")
 
@@ -255,8 +254,8 @@ class GameScene:
                     candidate_center = (x + config.PLANET_RADIUS, y + config.PLANET_RADIUS)
 
                     for planet in self.planets:
-                        dx = candidate_center[0] - (planet.center_x)
-                        dy = candidate_center[1] - (planet.center_y)
+                        dx = candidate_center[0] - planet.center_x
+                        dy = candidate_center[1] - planet.center_y
                         distance = math.hypot(dx, dy)
 
                         if distance < 2 * config.PLANET_RADIUS:
@@ -266,4 +265,4 @@ class GameScene:
                     if ok:
                         break
 
-                self.planets.append(Planet(x,y, color))
+                self.planets.append(Planet(x, y, color))
