@@ -18,15 +18,13 @@ class Planet:
         self.center_x = self.x + self.radius
         self.center_y = self.y + self.radius
 
-        self.connected_planets = []
-
         self.target_value = None
 
         self.value = 1
         self.value_timer = 0
         self.value_timer_target = 60
 
-        self.send_rocket_every = 60
+        self.send_rocket_every = 1000
 
         base_texture = random.choice([config.planet_assets[key] for key in config.planet_assets if "sphere" in key])
         noise_texture = random.choice([config.planet_assets[key] for key in config.planet_assets if "noise" in key])
@@ -37,9 +35,6 @@ class Planet:
         self.light_texture = pygame.transform.scale(light_texture, (radius * 2, radius * 2))
 
         self.create_planet_surface()
-
-    def connect_planet(self, planet):
-        self.connected_planets.append((planet, 0))
 
     def create_planet_surface(self):
         planet_surface = pygame.Surface((self.radius * 2, self.radius * 2), pygame.SRCALPHA)

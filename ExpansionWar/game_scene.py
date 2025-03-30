@@ -4,8 +4,8 @@ import random
 import config
 import pygame
 
+from connection import Connection
 from planet import Planet
-from rocket import Rocket
 
 import logging
 logger = logging.getLogger(__name__)
@@ -14,6 +14,8 @@ class GameScene:
     def __init__(self, level):
         self.planets = []
         self.rockets = []
+        self.connections = []
+
         self.selected_planet = None
         self.level = level
 
@@ -34,9 +36,6 @@ class GameScene:
     def add_planet(self, planet):
         self.planets.append(planet)
 
-    def rocket_finished(self, rocket):
-        self.rockets.remove(rocket)
-
     def draw(self, surface):
         surface.blit(self.info_bar_surface, (0,0))
         surface.blit(self.cards_surface, (0, self.planets_base_y + config.GAME_SCENE_HEIGHT))
@@ -54,26 +53,8 @@ class GameScene:
                 config.set_scene(GameScene(self.level))
             return
 
-        for planet in self.planets:
-            for i in range(0, len(planet.connected_planets)):
-                connected_planet_data = planet.connected_planets[i]
-                connected_planet = connected_planet_data[0]
-                connected_planet_tick = connected_planet_data[1]
-
-                if planet.value > 0 and connected_planet_tick > planet.send_rocket_every:
-                    planet.connected_planets[i] = (connected_planet, 0)
-                    self.rockets.append(Rocket(self, planet, connected_planet))
-                    planet.value -= 1
-                else:
-                    planet.connected_planets[i] = (connected_planet, connected_planet_tick + 1)
-
-                pygame.draw.line(surface, config.CONNECTION_COLOR,
-                                 (self.planets_base_x + planet.center_x, self.planets_base_y + planet.center_y),
-                                 (self.planets_base_x + connected_planet.center_x, self.planets_base_y + connected_planet.center_y), 5)
-
-
-        for rocket in self.rockets:
-            rocket.draw(self.planets_base_x, self.planets_base_y, surface)
+        for connection in self.connections:
+            connection.draw(self.planets_base_x, self.planets_base_y, surface)
 
         for planet in self.planets:
             planet.draw(surface, self.planets_base_x, self.planets_base_y)
@@ -122,11 +103,11 @@ class GameScene:
                     planet.selected = True
                     return True
                 elif self.selected_planet != planet:
-                    if planet in [x[0] for x in self.selected_planet.connected_planets]:
+                    if planet in [connection.other_planet for connection in self.connections if connection.planet == self.selected_planet]:
                         config.logger.warning("Planets already connected!")
                     else:
                         config.logger.info("Connected planets")
-                        self.selected_planet.connect_planet(planet)
+                        self.connections.append(Connection(self.selected_planet, planet))
 
                     self.selected_planet.selected = False
                     self.selected_planet = None
@@ -135,6 +116,13 @@ class GameScene:
                     planet.selected = False
                     self.selected_planet = None
                     return True
+
+        for connection in self.connections:
+            if connection.is_clicked(self.planets_base_x, self.planets_base_y, pos):
+                logger.debug(f"Connection {connection} clicked")
+                self.connections.remove(connection)
+                return True
+
         return False
 
     def create_level(self):

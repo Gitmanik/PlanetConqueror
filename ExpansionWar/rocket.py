@@ -6,7 +6,7 @@ import config
 logger = logging.getLogger(__name__)
 
 class Rocket:
-    def __init__(self, scene, planet, other_planet):
+    def __init__(self, parent, planet, other_planet):
         if planet.color == other_planet.color:
             self.rocket_texture = config.rocket_assets["spaceRockets_001"]
         else:
@@ -16,7 +16,7 @@ class Rocket:
 
         self.rocket_texture = pygame.transform.rotate(self.rocket_texture, -math.degrees(math.atan2(other_planet.center_y - planet.center_y, other_planet.center_x - planet.center_x)) - 90)
 
-        self.scene = scene
+        self.parent = parent
         self.planet = planet
         self.other_planet = other_planet
 
@@ -38,7 +38,7 @@ class Rocket:
                     self.other_planet.set_color(self.planet.color)
                     self.other_planet.value = 1
 
-            self.scene.rocket_finished(self)
+            self.parent.rocket_finished(self)
 
         self.x = config.lerp(0, self.target_time, self.planet.center_x, self.other_planet.center_x, self.current_time)
         self.y = config.lerp(0, self.target_time, self.planet.center_y, self.other_planet.center_y, self.current_time)
