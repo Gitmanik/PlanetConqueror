@@ -76,6 +76,15 @@ class GameScene:
         all_colors = sorted(set(planet.color for planet in self.planets))
         all_playing_colors = sorted(set(planet.color for planet in self.planets if planet.color != config.NO_OWNER_COLOR))
 
+        # Update black surface
+        for planet in self.planets:
+            if self.dragging_card == 0:
+                planet.apply_black_surface = not (
+                            planet.color == config.PLAYER_COLOR and planet.value > config.SATELLITE_COST)
+            elif self.dragging_card == 1:
+                planet.apply_black_surface = not (
+                            planet.color == config.PLAYER_COLOR and planet.value > config.ROCKET_COST)
+
         # End condition
         if len(all_colors) == 1:
             if all_colors.pop() == config.PLAYER_COLOR:
@@ -126,6 +135,10 @@ class GameScene:
                 if self.selected_planet is None:
                     if planet.color != config.PLAYER_COLOR:
                         config.logger.debug("Enemy planet clicked")
+                        return True
+
+                    if planet.value < 1:
+                        logger.warning("Planet has value less than 1")
                         return True
 
                     self.selected_planet = planet
@@ -188,6 +201,9 @@ class GameScene:
                             planet.value -= config.ROCKET_COST
                             logger.info(f"Upgraded Rocket on planet {planet}, new value: {planet.rocket_upgrade}")
                     break
+
+            for planet in self.planets:
+                planet.apply_black_surface = False
 
             self.dragging_card = None
             self.dragging_card_offset = (0, 0)

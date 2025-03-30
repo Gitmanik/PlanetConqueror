@@ -16,6 +16,7 @@ class Planet:
 
         self.radius = radius
         self.selected = False
+        self.apply_black_surface = False
         self.center_x = self.x + self.radius
         self.center_y = self.y + self.radius
 
@@ -61,6 +62,10 @@ class Planet:
         self.selected_surface.fill((255, 255, 255, 127))
         self.selected_surface.blit(self.base_texture, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
+        self.black_surface = pygame.Surface((self.radius * 2, self.radius * 2), pygame.SRCALPHA)
+        self.black_surface.fill((0, 0, 0, 127))
+        self.black_surface.blit(self.base_texture, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
         planet_surface.blit(colored_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
         self.surface = planet_surface
@@ -98,6 +103,9 @@ class Planet:
         screen.blit(self.surface, (base_x + self.x, base_y + self.y))
         if self.selected:
             screen.blit(self.selected_surface, (base_x + self.x, base_y + self.y))
+
+        if self.apply_black_surface:
+            screen.blit(self.black_surface, (base_x + self.x, base_y + self.y))
 
         if self.target_value:
             text = self.font.render(f"{self.value}/{self.target_value}", True, (255, 255, 255))

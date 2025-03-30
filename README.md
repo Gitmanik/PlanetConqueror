@@ -8,7 +8,7 @@ Planet conqueror is a 'expansion war' game made in Python and Pygame.
 - [x] **Interactivity of units – clickability, dragging, context menu** (3 points)
 - [x] **Unit control – selection from the menu and movement on the game grid** (2 points)
 - [x] **Loading unit graphics from .rc file** (1 point)
-- [ ] **Highlighting possible moves and attacks depending on the multiplier** (2 points)
+- [x] **Highlighting possible moves and attacks depending on the multiplier** (2 points)
 - [x] **Combat system considering levels, unit multiplication, and special battle effects** (3 points)
 - [x] **Turn mechanism and timer for making a move (turn clock)** (2 points)
 - [ ] **Strategic suggestion system based on AI (e.g., best move of the turn)** (1 point)
