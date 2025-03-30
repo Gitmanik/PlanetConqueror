@@ -21,9 +21,13 @@ class GameScene:
 
         self.planets_base_x = 0
         self.planets_base_y = config.GAME_INFO_BAR_HEIGHT
+
         self.info_bar_surface = pygame.Surface((config.SCREEN_WIDTH, config.GAME_INFO_BAR_HEIGHT))
         self.info_bar_surface.set_alpha(200)
         self.info_bar_surface.fill((0, 0, 0))
+        self.cards_surface = pygame.Surface((config.SCREEN_WIDTH, config.CARDS_BAR_HEIGHT))
+        self.cards_surface.set_alpha(200)
+        self.cards_surface.fill((0, 0, 0))
 
         self.create_level()
 
@@ -35,7 +39,10 @@ class GameScene:
 
     def draw(self, surface):
         surface.blit(self.info_bar_surface, (0,0))
+        surface.blit(self.cards_surface, (0, self.planets_base_y + config.GAME_SCENE_HEIGHT))
+
         self.draw_info(surface)
+        self.draw_cards(surface)
 
         colors = set(planet.color for planet in self.planets)
         if len(colors) == 1: # Win condition
@@ -85,6 +92,24 @@ class GameScene:
         surface.blit(stage_text, (stage_x, y))
         surface.blit(year_text, (year_x, y))
 
+    def draw_cards(self, surface):
+        total_cards = 4
+        spacing = 0
+
+        card_width = (config.SCREEN_WIDTH - 3*spacing) // total_cards
+        card_height = 3/4 * config.CARDS_BAR_HEIGHT
+
+        total_width = total_cards * card_width + 3 * spacing
+        start_x = (config.SCREEN_WIDTH - total_width) // 2
+
+        card = pygame.transform.scale(config.card, (card_width, card_height))
+
+        y = self.planets_base_y + config.GAME_SCENE_HEIGHT + (config.CARDS_BAR_HEIGHT - card_height) // 2
+
+        for i in range(total_cards):
+            x = start_x + i * (card_width + spacing)
+            surface.blit(card, (x, y))
+
     def handle_click(self, pos):
         for planet in self.planets:
             if planet.is_clicked(self.planets_base_x, self.planets_base_y, pos):
@@ -113,7 +138,6 @@ class GameScene:
         return False
 
     def create_level(self):
-
         enemy_ct = round(1.5**self.level-0.5)
         enemy_planets = round(1.5**self.level-0.5)
 

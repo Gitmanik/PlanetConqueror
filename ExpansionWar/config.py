@@ -21,6 +21,7 @@ BASE_HEIGHT = 700
 
 #UI and PLANET
 GAME_INFO_BAR_HEIGHT = 50
+CARDS_BAR_HEIGHT = 120
 PLANET_RADIUS = 30
 PLANET_TEXT_SIZE = 24
 
@@ -35,17 +36,20 @@ SCREEN_WIDTH = 400*2
 SCREEN_HEIGHT = 700*2
 
 GAME_INFO_BAR_HEIGHT = int(scale(GAME_INFO_BAR_HEIGHT, (0, BASE_HEIGHT), (0, SCREEN_HEIGHT)))
+CARDS_BAR_HEIGHT = int(scale(CARDS_BAR_HEIGHT, (0, BASE_HEIGHT), (0, SCREEN_HEIGHT)))
 PLANET_RADIUS = scale(PLANET_RADIUS, (0, BASE_HEIGHT), (0, SCREEN_HEIGHT))
 PLANET_TEXT_SIZE = int(scale(PLANET_TEXT_SIZE, (0, BASE_HEIGHT), (0, SCREEN_HEIGHT)))
 
 GAME_SCENE_WIDTH = SCREEN_WIDTH
-GAME_SCENE_HEIGHT = SCREEN_HEIGHT - GAME_INFO_BAR_HEIGHT
+GAME_SCENE_HEIGHT = SCREEN_HEIGHT - GAME_INFO_BAR_HEIGHT - CARDS_BAR_HEIGHT
 
 background = pygame.image.load(os.path.join(ASSETS_FOLDER, "Background.png"))
 background = pygame.transform.scale(background, [SCREEN_WIDTH, SCREEN_HEIGHT])
 
 planet_assets = dict()
 rocket_assets = dict()
+
+card = pygame.image.load(os.path.join(ASSETS_FOLDER, "card_empty.png"))
 
 def load_assets():
     logger.debug("Loading assets...")
