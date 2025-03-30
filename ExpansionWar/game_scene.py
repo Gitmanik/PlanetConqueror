@@ -94,6 +94,7 @@ class GameScene:
     def handle_click(self, pos):
         for planet in self.planets:
             if planet.is_clicked(self.planets_base_x, self.planets_base_y, pos):
+                logger.debug(f"Planet {planet} clicked")
                 if self.selected_planet is None:
                     if planet.color != config.PLAYER_COLOR:
                         config.logger.debug("Enemy planet clicked")
