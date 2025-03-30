@@ -33,9 +33,6 @@ class GameScene:
 
         self.create_level()
 
-    def add_planet(self, planet):
-        self.planets.append(planet)
-
     def draw(self, surface):
         surface.blit(self.info_bar_surface, (0,0))
         surface.blit(self.cards_surface, (0, self.planets_base_y + config.GAME_SCENE_HEIGHT))
@@ -164,4 +161,4 @@ class GameScene:
                     if ok:
                         break
 
-                self.add_planet(Planet(x,y, color))
+                self.planets.append(Planet(x,y, color))
