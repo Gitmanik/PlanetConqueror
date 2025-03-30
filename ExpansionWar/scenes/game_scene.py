@@ -124,7 +124,7 @@ class GameScene:
             return
 
         # Try to use a card upgrade.
-        if random.random() < 0.5:
+        if random.random() < 0.9:
             chosen = random.choice(enemy_planets)
             if chosen.value > config.SATELLITE_COST and chosen.satellite_upgrade < 6:
                 chosen.satellite_upgrade += 1
