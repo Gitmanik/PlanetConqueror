@@ -37,6 +37,7 @@ async def main():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKQUOTE:
                     config.ENABLE_PYGAME_LOG = not config.ENABLE_PYGAME_LOG
+                config.current_scene.handle_keydown(event)
 
         config.current_scene.draw(screen)
         if config.ENABLE_PYGAME_LOG:

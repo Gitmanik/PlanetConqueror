@@ -328,3 +328,6 @@ class GameScene:
                         break
 
                 self.planets.append(Planet(x, y, color))
+
+    def handle_keydown(self, event):
+        return False
