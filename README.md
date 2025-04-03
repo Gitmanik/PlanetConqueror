@@ -50,7 +50,9 @@ python3 main.py
 ```
 
 
-### Tasks
+## Tasks
+
+### Engine
 - [x] **Implement the game scene in QGraphicsScene** (1 point)
 - [x] **Inheritance from QGraphicsItem – units as separate objects** (1 point)
 - [x] **Interactivity of units – clickability, dragging, context menu** (3 points)
@@ -64,3 +66,11 @@ python3 main.py
 - [x] **Logger displaying messages on the console and in the QTextEdit interface with rotating logging** (1 point)
     * Press ` (backquote) to toggle
 - [ ] **Switching between 2D and 3D view (including rendering units in 3D)** (4 points)
+
+### Config
+- [x] **Game mode: 1 player / 2 players local / network game (radio buttons group)** (0.5 points)
+- [x] **IP address and port (line edit with mask, validation and hint)** (0.5 points)
+- [ ] **Save and read game history (XML)** (1 point)
+- [ ] **Save and read game history in NoSQL database (e.g. MongoDB or Firebase)** (1 point)
+- [ ] **Save and read game history (JSON)** (1 point)
+- [ ] **Read and playback saved game history with playback speed control** (1 point)
