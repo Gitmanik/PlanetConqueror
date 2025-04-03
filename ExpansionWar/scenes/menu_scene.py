@@ -1,6 +1,7 @@
 import pygame
 import config
 from planet import Planet
+from scenes.game_config_scene import GameConfigScene
 from scenes.game_scene import GameScene
 from scenes.how_to_play import HowToPlayScene
 
@@ -70,7 +71,7 @@ class MenuScene:
 
     def handle_click(self, pos):
         if self.start_button_rect and self.start_button_rect.collidepoint(pos):
-            config.set_scene(GameScene(1, 2100))
+            config.set_scene(GameConfigScene())
             return True
 
         if self.how_to_play_button_rect and self.how_to_play_button_rect.collidepoint(pos):
