@@ -161,12 +161,11 @@ class GameConfigScene:
         config.logger.info(f"Starting {self.mode} game")
         if self.mode == "1player":
             config.set_scene(GameScene(1, 2025, config.PLAYER_COLOR, None))
-
+        elif self.mode == "2local":
+            config.set_scene(GameScene(1, 2025, config.PLAYER_COLOR, config.PLAYER2_COLOR))
         else:
             config.set_scene(InfoScene("Not available yet\nsorry.", 2.5, GameConfigScene()))
 
-        # elif self.mode == "2local":
-        #     config.set_scene(GameScene(1, 2025, config.PLAYER_COLOR, config.PLAYER2_COLOR))
 
     def validate_ip(self):
         octets = self.ip_input["text"].split('.')
