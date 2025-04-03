@@ -9,6 +9,9 @@ from connection import Connection
 from planet import Planet
 
 import logging
+
+from scenes.info_scene import InfoScene
+
 logger = logging.getLogger(__name__)
 
 class GameScene:
@@ -97,11 +100,11 @@ class GameScene:
         if len(all_colors) == 1:
             if all_colors.pop() == config.PLAYER_COLOR:
                 config.logger.info("win")
-                config.set_scene(GameScene(self.level + 1, self.year))
+                config.set_scene(InfoScene("Mission\nSuccessful!", 2.5, GameScene(self.level + 1, self.year)))
             else:
                 config.logger.info("lose")
                 from scenes.menu_scene import MenuScene
-                config.set_scene(MenuScene())
+                config.set_scene(InfoScene("Mission\nfailed.", 2.5, MenuScene()))
             return
 
         # Turn time
