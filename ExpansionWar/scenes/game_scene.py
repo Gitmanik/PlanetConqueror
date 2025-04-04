@@ -1,32 +1,22 @@
-import math
+import logging
 import random
 
-import config
 import pygame
 
+import config
 from card import Card
 from connection import Connection
-from planet import Planet
-
-import logging
-
+from game_data import GameData
 from scenes.info_scene import InfoScene
 
 logger = logging.getLogger(__name__)
 
 class GameScene:
-    def __init__(self, level, year, p1color, p2color):
-        self.planets = []
-        self.rockets = []
-        self.connections = []
+    def __init__(self, data: GameData):
+
+        self.data = data
 
         self.selected_planet = None
-        self.level = level
-        self.year_start = year
-        self.year = year
-
-        self.p1color = p1color
-        self.p2color = p2color
 
         self.planets_base_x = 0
         self.planets_base_y = config.GAME_INFO_BAR_HEIGHT
@@ -39,10 +29,6 @@ class GameScene:
         self.cards_surface = pygame.Surface((config.SCREEN_WIDTH, config.CARDS_BAR_HEIGHT))
         self.cards_surface.set_alpha(200)
         self.cards_surface.fill((0, 0, 0))
-
-        self.current_turn_color = self.p1color
-        self.current_turn_start = pygame.time.get_ticks()
-        self.create_level()
 
         self.cards = []
         self.cards.append(Card(config.CARDS_BAR_HEIGHT * 3 / 4 * 3 / 4, config.CARDS_BAR_HEIGHT * 3 / 4, pygame.image.load(config.assets["satellite.png"]), 10))
@@ -59,20 +45,20 @@ class GameScene:
 
     def draw(self, surface):
         surface.blit(self.info_bar_surface, (0,0))
-        if self.current_turn_color in (self.p1color, self.p2color):
+        if self.data.current_turn_color in (self.data.p1color, self.data.p2color):
             surface.blit(self.cards_surface, (0, self.planets_base_y + config.GAME_SCENE_HEIGHT))
 
         self.draw_info(surface)
         self.draw_cards(surface)
-        if self.current_turn_color not in (self.p1color, self.p2color):
+        if self.data.current_turn_color not in (self.data.p1color, self.data.p2color):
             surface.blit(self.cards_surface, (0, self.planets_base_y + config.GAME_SCENE_HEIGHT))
 
         self.draw_turn(surface)
 
-        for connection in self.connections:
+        for connection in self.data.connections:
             connection.draw(self.planets_base_x, self.planets_base_y, surface)
 
-        for planet in self.planets:
+        for planet in self.data.planets:
             planet.draw(surface, self.planets_base_x, self.planets_base_y)
 
         if self.dragging_card is not None:
@@ -81,29 +67,30 @@ class GameScene:
         # GAME LOGIC
 
         # Enemy AI
-        if self.current_turn_color not in (self.p1color, self.p2color) and not self.enemy_ai_done:
+        if self.data.current_turn_color not in (self.data.p1color, self.data.p2color) and not self.enemy_ai_done:
             self.run_enemy_ai_turn()
 
-        for color in sorted(set(planet.color for planet in self.planets if planet.color != config.NO_OWNER_COLOR and planet.color not in (self.p1color, self.p2color))):
+        for color in sorted(set(planet.color for planet in self.data.planets if planet.color != config.NO_OWNER_COLOR and planet.color not in (self.data.p1color, self.data.p2color))):
             self.run_enemy_ai_continous(color)
 
-        all_colors = sorted(set(planet.color for planet in self.planets))
-        all_playing_colors = sorted(set(planet.color for planet in self.planets if planet.color != config.NO_OWNER_COLOR))
+        all_colors = sorted(set(planet.color for planet in self.data.planets))
+        all_playing_colors = sorted(set(planet.color for planet in self.data.planets if planet.color != config.NO_OWNER_COLOR))
 
         # Update black surface
-        for planet in self.planets:
+        for planet in self.data.planets:
             if self.dragging_card == 0:
                 planet.apply_black_surface = not (
-                            planet.color == self.current_turn_color and planet.value > config.SATELLITE_COST)
+                            planet.color == self.data.current_turn_color and planet.value > config.SATELLITE_COST)
             elif self.dragging_card == 1:
                 planet.apply_black_surface = not (
-                            planet.color == self.current_turn_color and planet.value > config.ROCKET_COST)
+                            planet.color == self.data.current_turn_color and planet.value > config.ROCKET_COST)
 
         # End condition
         if len(all_colors) == 1:
-            if all_colors.pop() in (self.p1color, self.p2color):
+            if all_colors.pop() in (self.data.p1color, self.data.p2color):
                 config.logger.info("win")
-                config.set_scene(InfoScene("Mission\nSuccessful!", 2.5, GameScene(self.level + 1, self.year, self.p1color, self.p2color)))
+                self.data.level += 1
+                config.set_scene(InfoScene("Mission\nSuccessful!", 2.5, GameScene(self.data.next_level())))
             else:
                 config.logger.info("lose")
                 from scenes.menu_scene import MenuScene
@@ -111,20 +98,20 @@ class GameScene:
             return
 
         # Turn time
-        if pygame.time.get_ticks() - self.current_turn_start > config.TURN_TIME or self.current_turn_color not in all_playing_colors:
-            idx = all_playing_colors.index(self.current_turn_color) + 1 if self.current_turn_color in all_playing_colors else 0
+        if pygame.time.get_ticks() - self.data.current_turn_start > config.TURN_TIME or self.data.current_turn_color not in all_playing_colors:
+            idx = all_playing_colors.index(self.data.current_turn_color) + 1 if self.data.current_turn_color in all_playing_colors else 0
             if idx >= len(all_playing_colors):
-                self.year += 1
+                self.data.year += 1
 
             self.dragging_card = None
-            self.current_turn_color = all_playing_colors[(idx) % len(all_playing_colors)]
-            self.current_turn_start = pygame.time.get_ticks()
+            self.data.current_turn_color = all_playing_colors[(idx) % len(all_playing_colors)]
+            self.data.current_turn_start = pygame.time.get_ticks()
 
-            if self.current_turn_color not in (self.p1color, self.p2color):
+            if self.data.current_turn_color not in (self.data.p1color, self.data.p2color):
                 self.enemy_ai_done = False
 
     def run_enemy_ai_turn(self):
-        enemy_planets = [planet for planet in self.planets if planet.color == self.current_turn_color]
+        enemy_planets = [planet for planet in self.data.planets if planet.color == self.data.current_turn_color]
         if not enemy_planets:
             self.enemy_ai_done = True
             return
@@ -135,11 +122,11 @@ class GameScene:
             if chosen.value > config.SATELLITE_COST and chosen.satellite_upgrade < 6:
                 chosen.satellite_upgrade += 1
                 chosen.value -= config.SATELLITE_COST
-                logger.info(f"Enemy {self.current_turn_color} {chosen} upgraded Satellite, new upgrade: {chosen.satellite_upgrade}")
+                logger.info(f"Enemy {self.data.current_turn_color} {chosen} upgraded Satellite, new upgrade: {chosen.satellite_upgrade}")
             elif chosen.value > config.ROCKET_COST and chosen.rocket_upgrade < 4:
                 chosen.rocket_upgrade += 1
                 chosen.value -= config.ROCKET_COST
-                logger.info(f"Enemy {self.current_turn_color} {chosen} upgraded Rocket, new upgrade: {chosen.rocket_upgrade}")
+                logger.info(f"Enemy {self.data.current_turn_color} {chosen} upgraded Rocket, new upgrade: {chosen.rocket_upgrade}")
         self.enemy_ai_done = True
 
     def run_enemy_ai_continous(self, color):
@@ -147,14 +134,14 @@ class GameScene:
         if random.random() > 0.005:
             return
 
-        enemy_planets = [planet for planet in self.planets if planet.color == color]
+        enemy_planets = [planet for planet in self.data.planets if planet.color == color]
         source = random.choice(enemy_planets)
         candidates = []
-        for candidate in self.planets:
+        for candidate in self.data.planets:
             if candidate != source:
                 # Check if there is already a connection between source and candidate.
                 already_connected = False
-                for connection in self.connections:
+                for connection in self.data.connections:
                     if (connection.planet == source and connection.other_planet == candidate) or \
                        (connection.planet == candidate and connection.other_planet == source):
                         already_connected = True
@@ -163,7 +150,7 @@ class GameScene:
                     candidates.append(candidate)
         if candidates:
             target = random.choice(candidates)
-            self.connections.append(Connection(source, target))
+            self.data.connections.append(Connection(source, target))
             logger.info(f"Enemy connection made between {source} and {target}")
 
         self.enemy_ai_done = True
@@ -171,10 +158,10 @@ class GameScene:
     def draw_info(self, surface):
         y = (config.GAME_INFO_BAR_HEIGHT - self.info_bar_font.get_linesize()) / 2
 
-        stage_text = self.info_bar_font.render(f"Level {self.level}", True, (255, 255, 255))
+        stage_text = self.info_bar_font.render(f"Level {self.data.level}", True, (255, 255, 255))
         stage_x = 20
 
-        year_text = self.info_bar_font.render(f"Year {self.year}", True, (255,255,255))
+        year_text = self.info_bar_font.render(f"Year {self.data.year}", True, (255,255,255))
         year_x = config.SCREEN_WIDTH - year_text.get_width() - stage_x
 
         surface.blit(stage_text, (stage_x, y))
@@ -187,15 +174,15 @@ class GameScene:
             card.draw(surface, self.card_rects[i].x, self.card_rects[i].y)
 
     def draw_turn(self, surface):
-        x = config.lerp(0, config.TURN_TIME, config.SCREEN_WIDTH, 0, pygame.time.get_ticks() - self.current_turn_start)
-        pygame.draw.rect(surface, self.current_turn_color, (self.planets_base_x, self.planets_base_y, x, 10))
+        x = config.lerp(0, config.TURN_TIME, config.SCREEN_WIDTH, 0, pygame.time.get_ticks() - self.data.current_turn_start)
+        pygame.draw.rect(surface, self.data.current_turn_color, (self.planets_base_x, self.planets_base_y, x, 10))
 
     def handle_click(self, pos):
-        for planet in self.planets:
+        for planet in self.data.planets:
             if planet.is_clicked(self.planets_base_x, self.planets_base_y, pos):
                 logger.debug(f"Planet {planet} clicked")
                 if self.selected_planet is None:
-                    if planet.color not in (self.p1color, self.p2color) or (self.p2color is not None and self.current_turn_color != planet.color):
+                    if planet.color not in (self.data.p1color, self.data.p2color) or (self.data.p2color is not None and self.data.current_turn_color != planet.color):
                         config.logger.debug("Enemy planet clicked")
                         return True
 
@@ -207,11 +194,11 @@ class GameScene:
                     planet.selected = True
                     return True
                 elif self.selected_planet != planet:
-                    if planet in [connection.other_planet for connection in self.connections if connection.planet == self.selected_planet]:
+                    if planet in [connection.other_planet for connection in self.data.connections if connection.planet == self.selected_planet]:
                         config.logger.warning("Planets already connected!")
                     else:
                         config.logger.info("Connected planets")
-                        self.connections.append(Connection(self.selected_planet, planet))
+                        self.data.connections.append(Connection(self.selected_planet, planet))
 
                     self.selected_planet.selected = False
                     self.selected_planet = None
@@ -221,14 +208,14 @@ class GameScene:
                     self.selected_planet = None
                     return True
 
-        for connection in self.connections:
+        for connection in self.data.connections:
             if connection.is_clicked(self.planets_base_x, self.planets_base_y, pos):
                 logger.debug(f"Connection {connection} clicked")
-                if connection.planet.color  in (self.p1color, self.p2color) and (self.p2color is None or (self.p2color is not None and self.current_turn_color == connection.planet.color)):
-                    self.connections.remove(connection)
+                if connection.planet.color  in (self.data.p1color, self.data.p2color) and (self.data.p2color is None or (self.data.p2color is not None and self.data.current_turn_color == connection.planet.color)):
+                    self.data.connections.remove(connection)
                 return True
 
-        if self.current_turn_color in (self.p1color, self.p2color):
+        if self.data.current_turn_color in (self.data.p1color, self.data.p2color):
             for i, rect in enumerate(self.get_card_rects()):
                 if rect.collidepoint(pos):
                     logger.debug(f"Card {i} clicked")
@@ -250,22 +237,22 @@ class GameScene:
 
     def handle_mouse_up(self, pos):
         if self.dragging_card is not None:
-            for planet in self.planets:
+            for planet in self.data.planets:
                 if planet.is_clicked(self.planets_base_x, self.planets_base_y, pos):
                     config.logger.info(f"Card dropped on planet {planet}")
                     if self.dragging_card == 0:
-                        if planet.color == self.current_turn_color and planet.value > config.SATELLITE_COST and planet.satellite_upgrade < 6:
+                        if planet.color == self.data.current_turn_color and planet.value > config.SATELLITE_COST and planet.satellite_upgrade < 6:
                             planet.satellite_upgrade += 1
                             planet.value -= config.SATELLITE_COST
                             logger.info(f"Upgraded Satellite on planet {planet}, new value: {planet.satellite_upgrade}")
                     if self.dragging_card == 1:
-                        if planet.color == self.current_turn_color and planet.value > config.ROCKET_COST and planet.rocket_upgrade < 4:
+                        if planet.color == self.data.current_turn_color and planet.value > config.ROCKET_COST and planet.rocket_upgrade < 4:
                             planet.rocket_upgrade += 1
                             planet.value -= config.ROCKET_COST
                             logger.info(f"Upgraded Rocket on planet {planet}, new value: {planet.rocket_upgrade}")
                     break
 
-            for planet in self.planets:
+            for planet in self.data.planets:
                 planet.apply_black_surface = False
 
             self.dragging_card = None
@@ -291,48 +278,6 @@ class GameScene:
             x = start_x + i * (card_width + spacing)
             rects.append(pygame.Rect(x, y, card_width, card_height))
         return rects
-
-    def create_level(self):
-        enemy_ct = round(1.5**self.level - 0.5)
-        enemy_planets = round(1.5**self.level - 0.5)
-
-        config.logger.info(f"Creating level {self.level}: enemy_ct: {enemy_ct}, enemy_planets: {enemy_planets}")
-
-        for i in range(-2, enemy_ct):
-            if i == -1:
-                color = self.p1color
-            elif i == -2:
-                color = config.NO_OWNER_COLOR
-            elif self.p2color is not None and i == 0:
-                color = self.p2color
-            else:
-                color = (
-                    random.randint(50, 255),
-                    random.randint(50, 255),
-                    random.randint(50, 255)
-                )
-
-            for _ in range(0, enemy_planets):
-                while True:
-                    ok = True
-                    x = random.uniform(config.PLANET_RADIUS * 2, config.GAME_SCENE_WIDTH - config.PLANET_RADIUS * 2)
-                    y = random.uniform(config.PLANET_RADIUS * 2, config.GAME_SCENE_HEIGHT - config.PLANET_RADIUS * 2)
-
-                    candidate_center = (x + config.PLANET_RADIUS, y + config.PLANET_RADIUS)
-
-                    for planet in self.planets:
-                        dx = candidate_center[0] - planet.center_x
-                        dy = candidate_center[1] - planet.center_y
-                        distance = math.hypot(dx, dy)
-
-                        if distance < 2 * config.PLANET_RADIUS:
-                            ok = False
-                            break
-
-                    if ok:
-                        break
-
-                self.planets.append(Planet(x, y, color))
 
     def handle_keydown(self, event):
         return False
