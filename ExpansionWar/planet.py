@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Planet:
-    def __init__(self, x, y, color, radius = config.PLANET_RADIUS, show_value = True):
+    def __init__(self, x, y, color, radius = config.PLANET_RADIUS, show_value = True, base_texture = None, noise_texture = None, light_texture = None):
         self.x = x
         self.y = y
         self.color = color
@@ -28,13 +28,27 @@ class Planet:
         self.send_rocket_every = 1 * 1000
         self.rocket_upgrade = 1
 
-        base_texture = random.choice([config.planet_assets[key] for key in config.planet_assets if "sphere" in key])
-        noise_texture = random.choice([config.planet_assets[key] for key in config.planet_assets if "noise" in key])
-        light_texture = random.choice([config.planet_assets[key] for key in config.planet_assets if "light" in key])
+        if base_texture is None:
+            self.base_texture_name = random.choice([key for key in config.planet_assets if "sphere" in key])
+        else:
+            self.base_texture_name = base_texture
+        self.base_texture = config.planet_assets[self.base_texture_name]
 
-        self.base_texture = pygame.transform.scale(base_texture, (radius * 2, radius * 2))
-        self.noise_texture = pygame.transform.scale(noise_texture, (radius * 2, radius * 2))
-        self.light_texture = pygame.transform.scale(light_texture, (radius * 2, radius * 2))
+        if noise_texture is None:
+            self.noise_texture_name = random.choice([key for key in config.planet_assets if "noise" in key])
+        else:
+            self.noise_texture_name = noise_texture
+        self.noise_texture = config.planet_assets[self.noise_texture_name]
+
+        if light_texture is None:
+            self.light_texture_name = random.choice([key for key in config.planet_assets if "light" in key])
+        else:
+            self.light_texture_name = light_texture
+        self.light_texture = config.planet_assets[self.light_texture_name]
+
+        self.base_texture = pygame.transform.scale(self.base_texture, (radius * 2, radius * 2))
+        self.noise_texture = pygame.transform.scale(self.noise_texture, (radius * 2, radius * 2))
+        self.light_texture = pygame.transform.scale(self.light_texture, (radius * 2, radius * 2))
 
         self.font = pygame.font.Font(config.assets[config.FONT_NAME], 35)
 
