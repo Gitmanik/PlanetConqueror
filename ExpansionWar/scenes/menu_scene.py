@@ -1,5 +1,6 @@
 import pygame
 import config
+from game_data import GameData
 from planet import Planet
 from scenes.game_config_scene import GameConfigScene
 from scenes.game_scene import GameScene
@@ -92,4 +93,6 @@ class MenuScene:
         return False
 
     def handle_keydown(self, event):
+        if event.key == pygame.K_l:
+            config.set_scene(GameScene(GameData.load("test.json")))
         return False

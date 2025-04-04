@@ -72,5 +72,7 @@ python3 main.py
 - [x] **IP address and port (line edit with mask, validation and hint)** (0.5 points)
 - [ ] **Save and read game history (XML)** (1 point)
 - [ ] **Save and read game history in NoSQL database (e.g. MongoDB or Firebase)** (1 point)
-- [ ] **Save and read game history (JSON)** (1 point)
+- [x] **Save and read game history (JSON)** (1 point)
+    * Press L in Menu to load game
+    * Press S in Game to save game
 - [ ] **Read and playback saved game history with playback speed control** (1 point)

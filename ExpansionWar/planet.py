@@ -135,3 +135,26 @@ class Planet:
     def set_color(self, new_color):
         self.color = new_color
         self.create_planet_surface()
+
+    def to_dict(self):
+        return {
+            'x': self.x,
+            'y': self.y,
+            'color': self.color,
+            'radius': self.radius,
+            'value': self.value,
+            'rocket_upgrade': self.rocket_upgrade,
+            'satellite_upgrade': self.satellite_upgrade,
+            'base_texture_name': self.base_texture_name,
+            'noise_texture_name': self.noise_texture_name,
+            'light_texture_name': self.light_texture_name,
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        planet = cls(data['x'], data['y'], tuple(data['color']), data['radius'], True, data['base_texture_name'], data['noise_texture_name'], data['light_texture_name'])
+        planet.value = data.get('value', 1)
+        planet.rocket_upgrade = data.get('rocket_upgrade', 1)
+        planet.satellite_upgrade = data.get('satellite_upgrade', 0)
+        planet.create_planet_surface()
+        return planet

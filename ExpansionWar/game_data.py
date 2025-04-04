@@ -68,6 +68,39 @@ class GameData:
 
         return data
 
+    def to_dict(self):
+        return {
+            'p1color': self.p1color,
+            'p2color': self.p2color,
+            'year': self.year,
+            'year_start': self.year_start,
+            'level': self.level,
+            'current_turn_color': self.current_turn_color,
+            'current_turn_start': self.current_turn_start,
+            'planets': [planet.to_dict() for planet in self.planets],
+            'connections': [conn.to_dict(self.planets) for conn in self.connections],
+        }
+
+    def save(self, filename):
+        with open(filename, 'w') as f:
+            json.dump(self.to_dict(), f)
+
+    @staticmethod
+    def load(filename):
+        with open(filename, 'r') as f:
+            data = json.load(f)
+        game = GameData()
+        game.p1color = tuple(data['p1color'])
+        game.p2color = tuple(data['p2color']) if data['p2color'] is not None else None
+        game.year = data['year']
+        game.year_start = data['year_start']
+        game.level = data['level']
+        game.current_turn_color = tuple(data['current_turn_color'])
+        game.current_turn_start = data['current_turn_start']
+        game.planets = [Planet.from_dict(pd) for pd in data['planets']]
+        game.connections = [Connection.from_dict(cd, game.planets) for cd in data.get('connections', [])]
+        return game
+
     def generate_planets(self):
         enemy_ct = round(1.5 ** self.level - 0.5)
         enemy_planets = round(1.5 ** self.level - 0.5)

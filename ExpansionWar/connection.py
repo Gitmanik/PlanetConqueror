@@ -58,3 +58,18 @@ class Connection:
         dist = math.hypot(px - nearest_x, py - nearest_y)
 
         return dist <= self.line_width
+
+    def to_dict(self, planets):
+        return {
+            'planet_index': planets.index(self.planet),
+            'other_planet_index': planets.index(self.other_planet),
+            'last_ticks': self.last_ticks,
+            'rockets': [rocket.to_dict() for rocket in self.rockets],
+        }
+
+    @classmethod
+    def from_dict(cls, data, planets):
+        conn = cls(planets[data['planet_index']], planets[data['other_planet_index']])
+        conn.last_ticks = data.get('last_ticks', 0)
+        conn.rockets = [Rocket.from_dict(r_data, conn) for r_data in data.get('rockets', [])]
+        return conn

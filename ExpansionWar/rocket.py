@@ -44,3 +44,14 @@ class Rocket:
 
         rotated_rect = self.rocket_texture.get_rect(center=(base_x + self.x, base_y + self.y))
         screen.blit(self.rocket_texture, rotated_rect)
+
+    def to_dict(self):
+        return {
+            'current_time': self.current_time,
+        }
+
+    @classmethod
+    def from_dict(cls, data, connection):
+        rocket = cls(connection, connection.planet, connection.other_planet)
+        rocket.current_time = data.get('current_time', 0)
+        return rocket

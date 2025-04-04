@@ -280,4 +280,6 @@ class GameScene:
         return rects
 
     def handle_keydown(self, event):
+        if event.key == pygame.K_s:
+            self.data.save('test.json')
         return False
