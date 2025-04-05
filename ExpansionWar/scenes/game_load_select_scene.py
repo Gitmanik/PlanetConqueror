@@ -11,6 +11,7 @@ import config
 from game_data import GameData
 from scenes.game_scene import GameScene
 
+logger = logging.getLogger(__name__)
 
 class GameLoadSelectScene:
     def __init__(self):
@@ -24,6 +25,16 @@ class GameLoadSelectScene:
         # Font setup
         self.title_font = pygame.font.Font(config.assets[config.FONT_NAME], 100)
         self.file_font = pygame.font.Font(config.assets[config.FONT_NAME], 50)
+
+
+        self.back_text = self.file_font.render("Back", True, (0, 0, 0))
+        button_width, button_height = 350, 90
+        self.back_button_rect = pygame.Rect(
+            (config.SCREEN_WIDTH - button_width) // 2,
+            (config.SCREEN_HEIGHT - button_height - 80),
+            button_width,
+            button_height
+        )
 
         # Load files
         self.refresh_file_list()
@@ -104,12 +115,24 @@ class GameLoadSelectScene:
             empty_rect = empty_text.get_rect(center=(config.SCREEN_WIDTH // 2, config.SCREEN_HEIGHT // 2))
             surface.blit(empty_text, empty_rect)
 
+        # Draw the back button
+        pygame.draw.rect(surface, (255, 255, 255), self.back_button_rect)
+        pygame.draw.rect(surface, (0, 0, 0), self.back_button_rect, 2)
+        back_text_rect = self.back_text.get_rect(center=self.back_button_rect.center)
+        surface.blit(self.back_text, back_text_rect)
+
     def handle_click(self, pos):
         for entry in self.file_entries:
             if entry["rect"].collidepoint(pos):
                 self.selected_file = entry["full_path"]
                 self.load_game()
                 return True
+
+        if self.back_button_rect.collidepoint(pos):
+            from scenes.menu_scene import MenuScene
+            config.set_scene(MenuScene())
+            return True
+
         return False
 
     def load_game(self):
