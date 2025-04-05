@@ -3,6 +3,7 @@ import config
 from game_data import GameData
 from planet import Planet
 from scenes.game_config_scene import GameConfigScene
+from scenes.game_load_select_scene import GameLoadSelectScene
 from scenes.game_scene import GameScene
 from scenes.how_to_play import HowToPlayScene
 
@@ -93,9 +94,7 @@ class MenuScene:
             return True
 
         if self.load_game_button_rect.collidepoint(pos):
-            config.set_scene(GameScene(GameData.load_json("test.json")))
-            # config.set_scene(GameScene(GameData.load_xml("test.xml")))
-            # config.set_scene(GameScene(GameData.load_from_mongo({"year":2100}, "test", "planet")))
+            config.set_scene(GameLoadSelectScene())
             return True
 
         if self.how_to_play_button_rect.collidepoint(pos):

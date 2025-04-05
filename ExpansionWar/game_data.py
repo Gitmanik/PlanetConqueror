@@ -1,6 +1,7 @@
 import json
 import logging
 import math
+import os
 import random
 import xml.etree.ElementTree as ET
 
@@ -81,9 +82,11 @@ class GameData:
             'connections': [conn.to_dict(self.planets) for conn in self.connections],
         }
 
-    def save(self, filename):
+    # ── JSON Support ──
+
+    def save_json(self, filename):
         logger.info(f"Saving GameData to {filename}")
-        with open(filename, 'w') as f:
+        with open(os.path.join(config.SAVES_FOLDER, filename), 'w') as f:
             json.dump(self.to_dict(), f)
 
     @staticmethod
@@ -141,7 +144,7 @@ class GameData:
         logger.info(f"Saving GameData to {filename}")
         root = self.to_xml()
         tree = ET.ElementTree(root)
-        tree.write(filename, encoding='utf-8', xml_declaration=True)
+        tree.write(os.path.join(config.SAVES_FOLDER, filename), encoding='utf-8', xml_declaration=True)
 
     @staticmethod
     def load_xml(filename):
