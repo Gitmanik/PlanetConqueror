@@ -2,14 +2,14 @@ import json
 import logging
 import math
 import random
-from datetime import datetime
+import xml.etree.ElementTree as ET
 
 import pygame
+import pymongo
 
 import config
 from connection import Connection
 from planet import Planet
-from rocket import Rocket
 
 logger = logging.getLogger(__name__)
 
@@ -82,24 +82,125 @@ class GameData:
         }
 
     def save(self, filename):
+        logger.info(f"Saving GameData to {filename}")
         with open(filename, 'w') as f:
             json.dump(self.to_dict(), f)
 
     @staticmethod
-    def load(filename):
+    def load_json(filename):
+        logger.info(f"Loading GameData from {filename}")
         with open(filename, 'r') as f:
             data = json.load(f)
+        return GameData.from_dict(data)
+
+    @staticmethod
+    def from_dict(data):
         game = GameData()
         game.p1color = tuple(data['p1color'])
         game.p2color = tuple(data['p2color']) if data['p2color'] is not None else None
-        game.year = data['year']
-        game.year_start = data['year_start']
-        game.level = data['level']
+        game.year = int(data['year'])
+        game.year_start = int(data['year_start'])
+        game.level = int(data['level'])
         game.current_turn_color = tuple(data['current_turn_color'])
-        game.current_turn_start = data['current_turn_start']
+        game.current_turn_start = int(data['current_turn_start'])
         game.planets = [Planet.from_dict(pd) for pd in data['planets']]
-        game.connections = [Connection.from_dict(cd, game.planets) for cd in data.get('connections', [])]
+        game.connections = [Connection.from_dict(cd, game.planets) for cd in (data.get('connections') or [])]
         return game
+
+    # ── MongoDB Support ──
+    def save_to_mongo(self, db_name, collection_name, connection_uri='mongodb://localhost:27017/'):
+        client = pymongo.MongoClient(connection_uri)
+        db = client[db_name]
+        collection = db[collection_name]
+        # Insert the game data as a new document.
+        collection.insert_one(self.to_dict())
+        client.close()
+
+    @classmethod
+    def load_from_mongo(cls, query, db_name, collection_name, connection_uri='mongodb://localhost:27017/'):
+        logger.info(f"Loading GameData from MongoDB: {connection_uri}, db: {db_name}, collection: {collection_name}")
+        client = pymongo.MongoClient(connection_uri)
+        db = client[db_name]
+        collection = db[collection_name]
+        data = collection.find_one(query)
+        client.close()
+        if data is not None:
+            return GameData.from_dict(data)
+        else:
+            return None
+
+    # ── XML Support ──
+    def to_xml(self):
+        data_dict = self.to_dict()
+        root = dict_to_xml("GameData", data_dict)
+        return root
+
+    def save_xml(self, filename):
+        logger.info(f"Saving GameData to {filename}")
+        root = self.to_xml()
+        tree = ET.ElementTree(root)
+        tree.write(filename, encoding='utf-8', xml_declaration=True)
+
+    @staticmethod
+    def load_xml(filename):
+        logger.info(f"Loading GameData from {filename}")
+        tree = ET.parse(filename)
+        root = tree.getroot()
+        data_dict = xml_to_dict(root)
+
+        def parse_color(val):
+            if val is None or val == "None":
+                return None
+            val = val.strip("()")
+            return tuple(int(float(x.strip())) for x in val.split(','))
+
+        def parse_int(val):
+            try:
+                return int(float(val))
+            except (ValueError, TypeError):
+                return 0
+
+        def parse_float(val):
+            try:
+                return float(val)
+            except (ValueError, TypeError):
+                return 0.0
+
+        # Convert top-level fields.
+        if 'p1color' in data_dict:
+            data_dict['p1color'] = parse_color(data_dict['p1color'])
+        if 'p2color' in data_dict:
+            data_dict['p2color'] = parse_color(data_dict['p2color'])
+        if 'year' in data_dict:
+            data_dict['year'] = parse_int(data_dict['year'])
+        if 'year_start' in data_dict:
+            data_dict['year_start'] = parse_int(data_dict['year_start'])
+        if 'level' in data_dict:
+            data_dict['level'] = parse_int(data_dict['level'])
+        if 'current_turn_color' in data_dict:
+            data_dict['current_turn_color'] = parse_color(data_dict['current_turn_color'])
+        if 'current_turn_start' in data_dict:
+            data_dict['current_turn_start'] = parse_int(data_dict['current_turn_start'])
+
+        # Ensure 'planets' is a list.
+        if 'planets' in data_dict:
+            if not isinstance(data_dict['planets'], list):
+                data_dict['planets'] = [data_dict['planets']]
+        else:
+            data_dict['planets'] = []
+
+        # Ensure 'connections' is a list.
+        if 'connections' in data_dict:
+            if not isinstance(data_dict['connections'], list):
+                # Sometimes an empty <connections /> element becomes an empty string or dict.
+                if data_dict['connections'] in (None, "", {}):
+                    data_dict['connections'] = []
+                else:
+                    data_dict['connections'] = [data_dict['connections']]
+        else:
+            data_dict['connections'] = []
+
+        return GameData.from_dict(data_dict)
 
     def generate_planets(self):
         enemy_ct = round(1.5 ** self.level - 0.5)
@@ -142,3 +243,35 @@ class GameData:
                         break
 
                 self.planets.append(Planet(x, y, color))
+
+def dict_to_xml(tag, d):
+    elem = ET.Element(tag)
+    for key, val in d.items():
+        child = ET.SubElement(elem, key)
+        if isinstance(val, dict):
+            child.append(dict_to_xml(key, val))
+        elif isinstance(val, list):
+            for item in val:
+                if isinstance(item, dict):
+                    item_elem = dict_to_xml("item", item)
+                    child.append(item_elem)
+                else:
+                    item_elem = ET.Element("item")
+                    item_elem.text = str(item)
+                    child.append(item_elem)
+        else:
+            child.text = str(val)
+    return elem
+
+def xml_to_dict(elem):
+    d = {}
+    for child in elem:
+        if list(child):
+            # If all subelements are named "item", treat as a list.
+            if all(sub.tag == "item" for sub in child):
+                d[child.tag] = [xml_to_dict(sub) if list(sub) else sub.text for sub in child]
+            else:
+                d[child.tag] = xml_to_dict(child)
+        else:
+            d[child.tag] = child.text
+    return d

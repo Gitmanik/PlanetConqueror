@@ -69,7 +69,7 @@ class Connection:
 
     @classmethod
     def from_dict(cls, data, planets):
-        conn = cls(planets[data['planet_index']], planets[data['other_planet_index']])
-        conn.last_ticks = data.get('last_ticks', 0)
+        conn = cls(planets[int(data['planet_index'])], planets[int(data['other_planet_index'])])
+        conn.last_ticks = int(data.get('last_ticks', 0))
         conn.rockets = [Rocket.from_dict(r_data, conn) for r_data in data.get('rockets', [])]
         return conn

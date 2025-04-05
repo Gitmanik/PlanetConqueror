@@ -282,4 +282,5 @@ class GameScene:
     def handle_keydown(self, event):
         if event.key == pygame.K_s:
             self.data.save('test.json')
+            self.data.save_xml('test.xml')
         return False
