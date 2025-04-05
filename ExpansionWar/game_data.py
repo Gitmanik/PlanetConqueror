@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 
 import pygame
 import pymongo
+from pymongo.errors import ConnectionFailure
 
 import config
 from connection import Connection
@@ -113,27 +114,33 @@ class GameData:
     # ── MongoDB Support ──
     def save_to_mongo(self, filename):
         logger.info(f"Saving GameData to MongoDB: {filename}")
-        client = pymongo.MongoClient(config.MONGO_CONNECTION_URI)
-        db = client[config.MONGO_DB]
-        collection = db[config.MONGO_COLLECTION]
-        data = self.to_dict()
-        data["mongo_name"] = filename
-        collection.insert_one(data)
-        client.close()
+        client = pymongo.MongoClient(config.MONGO_CONNECTION_URI, serverSelectionTimeoutMS=100)
+        try:
+            db = client[config.MONGO_DB]
+            collection = db[config.MONGO_COLLECTION]
+            data = self.to_dict()
+            data["mongo_name"] = filename
+            collection.insert_one(data)
+            client.close()
+        except ConnectionFailure:
+            print("Server not available")
 
     @classmethod
     def load_from_mongo(cls, filename):
         logger.info(f"Loading GameData from MongoDB: {filename}")
-        client = pymongo.MongoClient(config.MONGO_CONNECTION_URI)
-        db = client[config.MONGO_DB]
-        collection = db[config.MONGO_COLLECTION]
-        data = collection.find_one({"mongo_name": filename})
-        client.close()
-        if data is not None:
-            return GameData.from_dict(data)
-        else:
+        client = pymongo.MongoClient(config.MONGO_CONNECTION_URI, serverSelectionTimeoutMS=100)
+        try:
+            db = client[config.MONGO_DB]
+            collection = db[config.MONGO_COLLECTION]
+            data = collection.find_one({"mongo_name": filename})
+            client.close()
+            if data is not None:
+                return GameData.from_dict(data)
+            else:
+                return None
+        except ConnectionFailure:
+            print("Server not available")
             return None
-
     # ── XML Support ──
     def to_xml(self):
         data_dict = self.to_dict()
