@@ -1,7 +1,11 @@
+import logging
 import os
+import sys
+
 import pygame
-import pymongo
-from pymongo.errors import ConnectionFailure
+if sys.platform != "emscripten":
+    import pymongo
+    from pymongo.errors import ConnectionFailure
 
 import config
 from game_data import GameData
@@ -36,22 +40,23 @@ class GameLoadSelectScene:
                 }
                 self.file_entries.append(entry)
 
-        client = pymongo.MongoClient(config.MONGO_CONNECTION_URI, serverSelectionTimeoutMS=100)
-        try:
-            client.admin.command('ping')
-            db = client[config.MONGO_DB]
-            collection = db[config.MONGO_COLLECTION]
-            data = collection.find()
-            for x in data:
-                entry = {
-                    "filename": x["mongo_name"] + ".mongo",
-                    "rect": pygame.Rect(0, 0, 0, 0),  # Updated in draw()
-                    "full_path": os.path.join("saves", fname)
-                }
-                self.file_entries.append(entry)
-            client.close()
-        except ConnectionFailure:
-            print("Server not available")
+        if sys.platform != "emscripten":
+            client = pymongo.MongoClient(config.MONGO_CONNECTION_URI, serverSelectionTimeoutMS=100)
+            try:
+                client.admin.command('ping')
+                db = client[config.MONGO_DB]
+                collection = db[config.MONGO_COLLECTION]
+                data = collection.find()
+                for x in data:
+                    entry = {
+                        "filename": x["mongo_name"] + ".mongo",
+                        "rect": pygame.Rect(0, 0, 0, 0),  # Updated in draw()
+                        "full_path": os.path.join("saves", x["mongo_name"])
+                    }
+                    self.file_entries.append(entry)
+                client.close()
+            except:
+                logger.error("Server not available")
 
     def draw(self, surface):
         surface.blit(self.background, (0, 0))
