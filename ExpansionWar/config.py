@@ -56,6 +56,8 @@ rocket_assets = dict()
 FONT_NAME = "Kenney Future Narrow.ttf"
 
 SAVES_FOLDER = "saves"
+LOCAL_STORAGE = "saves"
+
 MONGO_CONNECTION_URI = "mongodb://localhost:27017/"
 MONGO_DB = "test"
 MONGO_COLLECTION = "planet"

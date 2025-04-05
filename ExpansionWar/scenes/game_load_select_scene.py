@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import json
 
 import pygame
 if sys.platform != "emscripten":
@@ -42,16 +43,39 @@ class GameLoadSelectScene:
     def refresh_file_list(self):
         """Scan saves directory for loadable files"""
         self.file_entries = []
-        for fname in os.listdir(config.SAVES_FOLDER):
-            if fname.endswith((".json", ".xml")):
+        if sys.platform == "emscripten":
+            from platform import window
+            stored = window.localStorage.getItem(config.LOCAL_STORAGE)
+            try:
+                files_data = json.loads(stored) if stored else {"json": {}, "xml": {}}
+            except Exception:
+                files_data = {"json": {}, "xml": {}}
+            # List JSON entries
+            for fname in files_data["json"]:
                 entry = {
                     "filename": fname,
-                    "rect": pygame.Rect(0, 0, 0, 0),  # Updated in draw()
-                    "full_path": os.path.join("saves", fname)
+                    "rect": pygame.Rect(0, 0, 0, 0),  # Will be updated in draw()
+                    "full_path": fname
                 }
                 self.file_entries.append(entry)
-
-        if sys.platform != "emscripten":
+            for fname in files_data["xml"]:
+                entry = {
+                    "filename": fname,
+                    "rect": pygame.Rect(0, 0, 0, 0),
+                    "full_path": fname
+                }
+                self.file_entries.append(entry)
+        else:
+            # Native platforms: list files in the saves folder
+            for fname in os.listdir(config.SAVES_FOLDER):
+                if fname.endswith((".json", ".xml")):
+                    entry = {
+                        "filename": fname,
+                        "rect": pygame.Rect(0, 0, 0, 0),  # Updated in draw()
+                        "full_path": os.path.join("saves", fname)
+                    }
+                    self.file_entries.append(entry)
+            # Also add MongoDB entries if available
             client = pymongo.MongoClient(config.MONGO_CONNECTION_URI, serverSelectionTimeoutMS=100)
             try:
                 client.admin.command('ping')
@@ -124,8 +148,7 @@ class GameLoadSelectScene:
     def handle_click(self, pos):
         for entry in self.file_entries:
             if entry["rect"].collidepoint(pos):
-                self.selected_file = entry["full_path"]
-                self.load_game()
+                self.load_game(entry["full_path"])
                 return True
 
         if self.back_button_rect.collidepoint(pos):
@@ -135,21 +158,28 @@ class GameLoadSelectScene:
 
         return False
 
-    def load_game(self):
-        if self.selected_file and os.path.exists(self.selected_file):
-            try:
-                config.logger.info(f"Loading game from {self.selected_file}")
-                ext = os.path.splitext(self.selected_file)[1]
+    def load_game(self, selected_file):
+        try:
+            if sys.platform == "emscripten":
+                config.logger.info(f"Loading game from localStorage: {selected_file}")
+                ext = os.path.splitext(selected_file)[1]
                 if ext == ".json":
-                    config.set_scene(GameScene(GameData.load_json(self.selected_file)))
+                    config.set_scene(GameScene(GameData.load_json(selected_file)))
                 elif ext == ".xml":
-                    config.set_scene(GameScene(GameData.load_xml(self.selected_file)))
+                    config.set_scene(GameScene(GameData.load_xml(selected_file)))
+            else:
+                config.logger.info(f"Loading game from {selected_file}")
+                ext = os.path.splitext(selected_file)[1]
+                if ext == ".json":
+                    config.set_scene(GameScene(GameData.load_json(selected_file)))
+                elif ext == ".xml":
+                    config.set_scene(GameScene(GameData.load_xml(selected_file)))
                 elif ext == ".mongo":
-                    config.set_scene(GameScene(GameData.load_from_mongo(os.path.splitext(self.selected_file)[0])))
-            except Exception as e:
-                config.logger.error(f"Load failed: {str(e)}")
-                from scenes.info_scene import InfoScene
-                config.set_scene(InfoScene(f"Load failed!\n{str(e)}", 3, self))
+                    config.set_scene(GameScene(GameData.load_from_mongo(os.path.splitext(selected_file)[0])))
+        except Exception as e:
+            config.logger.error(f"Load failed: {str(e)}")
+            from scenes.info_scene import InfoScene
+            config.set_scene(InfoScene(f"Load failed!\n{str(e)}", 3, self))
 
     def handle_keydown(self, event):
         return False

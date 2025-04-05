@@ -88,16 +88,42 @@ class GameData:
     # ── JSON Support ──
 
     def save_json(self, filename):
-        logger.info(f"Saving GameData to {filename}")
-        with open(os.path.join(config.SAVES_FOLDER, filename), 'w') as f:
-            json.dump(self.to_dict(), f)
+        if sys.platform == "emscripten":
+            from platform import window
+            stored = window.localStorage.getItem(config.LOCAL_STORAGE)
+            try:
+                files_data = json.loads(stored) if stored else {"json": {}, "xml": {}}
+            except Exception:
+                files_data = {"json": {}, "xml": {}}
+            # Store under the "json" sub-dictionary
+            files_data["json"][filename] = self.to_dict()
+            window.localStorage.setItem(config.LOCAL_STORAGE, json.dumps(files_data))
+            logger.info(f"Saved GameData JSON to localStorage under key '{config.LOCAL_STORAGE}' with filename {filename}")
+        else:
+            logger.info(f"Saving GameData to {filename}")
+            with open(os.path.join(config.SAVES_FOLDER, filename), 'w') as f:
+                json.dump(self.to_dict(), f)
 
     @staticmethod
     def load_json(filename):
-        logger.info(f"Loading GameData from {filename}")
-        with open(filename, 'r') as f:
-            data = json.load(f)
-        return GameData.from_dict(data)
+        if sys.platform == "emscripten":
+            from platform import window
+            stored = window.localStorage.getItem(config.LOCAL_STORAGE)
+            try:
+                files_data = json.loads(stored) if stored else {"json": {}, "xml": {}}
+            except Exception:
+                files_data = {"json": {}, "xml": {}}
+            if filename in files_data["json"]:
+                logger.info(f"Loading GameData JSON from localStorage under key '{config.LOCAL_STORAGE}' with filename {filename}")
+                return GameData.from_dict(files_data["json"][filename])
+            else:
+                logger.error(f"JSON file {filename} not found in localStorage")
+                return None
+        else:
+            logger.info(f"Loading GameData from {filename}")
+            with open(filename, 'r') as f:
+                data = json.load(f)
+            return GameData.from_dict(data)
 
     @staticmethod
     def from_dict(data):
@@ -156,18 +182,27 @@ class GameData:
         return root
 
     def save_xml(self, filename):
-        logger.info(f"Saving GameData to {filename}")
-        root = self.to_xml()
-        tree = ET.ElementTree(root)
-        tree.write(os.path.join(config.SAVES_FOLDER, filename), encoding='utf-8', xml_declaration=True)
+        if sys.platform == "emscripten":
+            from platform import window
+            root = self.to_xml()
+            xml_str = ET.tostring(root, encoding='utf-8', method='xml').decode('utf-8')
+            stored = window.localStorage.getItem(config.LOCAL_STORAGE)
+            try:
+                files_data = json.loads(stored) if stored else {"json": {}, "xml": {}}
+            except Exception:
+                files_data = {"json": {}, "xml": {}}
+            # Store under the "xml" sub-dictionary
+            files_data["xml"][filename] = xml_str
+            window.localStorage.setItem(config.LOCAL_STORAGE, json.dumps(files_data))
+            logger.info(f"Saved GameData XML to localStorage under key '{config.LOCAL_STORAGE}' with filename {filename}")
+        else:
+            logger.info(f"Saving GameData to {filename}")
+            root = self.to_xml()
+            tree = ET.ElementTree(root)
+            tree.write(os.path.join(config.SAVES_FOLDER, filename), encoding='utf-8', xml_declaration=True)
 
     @staticmethod
     def load_xml(filename):
-        logger.info(f"Loading GameData from {filename}")
-        tree = ET.parse(filename)
-        root = tree.getroot()
-        data_dict = xml_to_dict(root)
-
         def parse_color(val):
             if val is None or val == "None":
                 return None
@@ -186,7 +221,27 @@ class GameData:
             except (ValueError, TypeError):
                 return 0.0
 
-        # Convert top-level fields.
+        if sys.platform == "emscripten":
+            from platform import window
+            stored = window.localStorage.getItem(config.LOCAL_STORAGE)
+            try:
+                files_data = json.loads(stored) if stored else {"json": {}, "xml": {}}
+            except Exception:
+                files_data = {"json": {}, "xml": {}}
+            if filename in files_data["xml"]:
+                xml_str = files_data["xml"][filename]
+                logger.info(f"Loading GameData XML from localStorage under key '{config.LOCAL_STORAGE}' with filename {filename}")
+                root = ET.fromstring(xml_str)
+            else:
+                logger.error(f"XML file {filename} not found in localStorage")
+                return None
+        else:
+            logger.info(f"Loading GameData from {filename}")
+            tree = ET.parse(filename)
+            root = tree.getroot()
+
+        data_dict = xml_to_dict(root)
+
         if 'p1color' in data_dict:
             data_dict['p1color'] = parse_color(data_dict['p1color'])
         if 'p2color' in data_dict:
