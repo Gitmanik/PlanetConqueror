@@ -30,6 +30,12 @@ class GameScene:
         self.cards_surface.set_alpha(200)
         self.cards_surface.fill((0, 0, 0))
 
+        self.save_button_img = pygame.image.load(config.assets["save.png"])
+        btn_width = self.save_button_img.get_width()
+        btn_x = (config.SCREEN_WIDTH - btn_width) // 2
+        btn_y = (config.GAME_INFO_BAR_HEIGHT - self.save_button_img.get_height()) // 2
+        self.save_btn_rect = pygame.Rect(btn_x, btn_y, btn_width, self.save_button_img.get_height())
+
         self.cards = []
         self.cards.append(Card(config.CARDS_BAR_HEIGHT * 3 / 4 * 3 / 4, config.CARDS_BAR_HEIGHT * 3 / 4, pygame.image.load(config.assets["satellite.png"]), 10))
         self.cards.append(Card(config.CARDS_BAR_HEIGHT * 3 / 4 * 3 / 4, config.CARDS_BAR_HEIGHT * 3 / 4, pygame.image.load(config.assets["Rockets/spaceRockets_002.png"]), 5))
@@ -166,6 +172,7 @@ class GameScene:
 
         surface.blit(stage_text, (stage_x, y))
         surface.blit(year_text, (year_x, y))
+        surface.blit(self.save_button_img, (self.save_btn_rect.x, self.save_btn_rect.y))
 
     def draw_cards(self, surface):
         for i, card in enumerate(self.cards):
@@ -223,6 +230,12 @@ class GameScene:
                     self.dragging_card_offset = (pos[0] - rect.x, pos[1] - rect.y)
                     self.dragging_card_pos = (rect.x, rect.y)
                     return True
+
+        if self.save_btn_rect.collidepoint(pos):
+            self.data.save_json('save.json')
+            self.data.save_xml('save.xml')
+            self.data.save_to_mongo("save")
+            return True
 
         return False
 
