@@ -55,6 +55,11 @@ planet_assets = dict()
 rocket_assets = dict()
 FONT_NAME = "Kenney Future Narrow.ttf"
 
+SAVES_FOLDER = "saves"
+MONGO_CONNECTION_URI = "mongodb://localhost:27017/"
+MONGO_DB = "test"
+MONGO_COLLECTION = "planet"
+
 def load_assets():
     global assets
     global background

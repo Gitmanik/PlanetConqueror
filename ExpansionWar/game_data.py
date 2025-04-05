@@ -108,21 +108,23 @@ class GameData:
         return game
 
     # ── MongoDB Support ──
-    def save_to_mongo(self, db_name, collection_name, connection_uri='mongodb://localhost:27017/'):
-        client = pymongo.MongoClient(connection_uri)
-        db = client[db_name]
-        collection = db[collection_name]
-        # Insert the game data as a new document.
-        collection.insert_one(self.to_dict())
+    def save_to_mongo(self, filename):
+        logger.info(f"Saving GameData to MongoDB: {filename}")
+        client = pymongo.MongoClient(config.MONGO_CONNECTION_URI)
+        db = client[config.MONGO_DB]
+        collection = db[config.MONGO_COLLECTION]
+        data = self.to_dict()
+        data["mongo_name"] = filename
+        collection.insert_one(data)
         client.close()
 
     @classmethod
-    def load_from_mongo(cls, query, db_name, collection_name, connection_uri='mongodb://localhost:27017/'):
-        logger.info(f"Loading GameData from MongoDB: {connection_uri}, db: {db_name}, collection: {collection_name}")
-        client = pymongo.MongoClient(connection_uri)
-        db = client[db_name]
-        collection = db[collection_name]
-        data = collection.find_one(query)
+    def load_from_mongo(cls, filename):
+        logger.info(f"Loading GameData from MongoDB: {filename}")
+        client = pymongo.MongoClient(config.MONGO_CONNECTION_URI)
+        db = client[config.MONGO_DB]
+        collection = db[config.MONGO_COLLECTION]
+        data = collection.find_one({"mongo_name": filename})
         client.close()
         if data is not None:
             return GameData.from_dict(data)
