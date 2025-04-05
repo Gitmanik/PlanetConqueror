@@ -25,6 +25,8 @@ class MenuScene:
         self.github_rect = None
 
         self.planet = Planet(config.SCREEN_WIDTH/4, config.SCREEN_HEIGHT/3, config.PLAYER_COLOR, 1000, False)
+        self.planet.satellite_upgrade = 5
+        self.planet.satellite_orbit_speed = 0.0025
 
     def draw(self, surface):
         screen_width, screen_height = surface.get_size()
