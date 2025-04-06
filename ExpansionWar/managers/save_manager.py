@@ -13,6 +13,12 @@ logger = logging.getLogger(__name__)
 class SaveManager:
 
     @staticmethod
+    def setup():
+        if not os.path.exists(config.SAVES_FOLDER):
+            logger.info(f"Creating {config.SAVES_FOLDER} folder")
+            os.makedirs(config.SAVES_FOLDER)
+
+    @staticmethod
     def save_file(filename, content):
         if sys.platform == "emscripten":
             from platform import window

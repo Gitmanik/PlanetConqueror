@@ -1,5 +1,4 @@
 import asyncio
-import os
 
 import pygame
 
@@ -50,8 +49,6 @@ async def main():
 
 if __name__ == "__main__":
     PygameLogManager.setup()
-    if not os.path.exists(config.SAVES_FOLDER):
-        logger.info(f"Creating {config.SAVES_FOLDER} folder")
-        os.makedirs(config.SAVES_FOLDER)
     config.load_assets()
+    SaveManager.setup()
     asyncio.run(main())
