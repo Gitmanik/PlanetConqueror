@@ -1,16 +1,22 @@
 import pygame
 
 import config
-from game_data import GameData
+from data.game_data import GameData
+from data.menu_data import MenuData
+from managers.save_manager import SaveManager
 from scenes.game_scene import GameScene
 from scenes.info_scene import InfoScene
 
 
 class GameConfigScene:
+    SettingsFile = "menu_data.menujson"
+
     def __init__(self):
-        self.mode = "1player"
-        self.ip_address = "127.0.0.1"
-        self.port = "7777"
+        if GameConfigScene.SettingsFile not in SaveManager.list_files():
+            self.data = MenuData("1player", "127.0.0.1", "7777")
+        else:
+            self.data = MenuData.load_json(GameConfigScene.SettingsFile)
+
         self.active_input = None
 
         # Main surface setup
@@ -47,7 +53,7 @@ class GameConfigScene:
         input_width = int(config.SCREEN_WIDTH * 0.8)
         self.ip_input = {
             "rect": pygame.Rect(0, 150+(70+20)*2+100, input_width, 70),
-            "text": self.ip_address,
+            "text": self.data.ip,
             "active": False,
             "hint": "IP Address"
         }
@@ -55,7 +61,7 @@ class GameConfigScene:
 
         self.port_input = {
             "rect": pygame.Rect(0, 150+(70+20)*2+100+90, 200, 70),
-            "text": self.port,
+            "text": self.data.port,
             "active": False,
             "hint": "Port"
         }
@@ -78,7 +84,7 @@ class GameConfigScene:
 
         # Mode buttons
         for btn in self.mode_buttons:
-            is_selected = btn["value"] == self.mode
+            is_selected = btn["value"] == self.data.mode
             bg_color = (0, 150, 0) if is_selected else (50, 50, 50)
             border_color = (0, 200, 0) if is_selected else (100, 100, 100)
 
@@ -91,7 +97,7 @@ class GameConfigScene:
             surface.blit(label_surf, label_rect)
 
         # Network inputs
-        if self.mode == "network":
+        if self.data.mode == "network":
             self.draw_input(surface, self.ip_input,  (0, 255, 0) if self.validate_ip() else (255,0,0))
             self.draw_input(surface, self.port_input, (0, 255, 0) if self.validate_port() else (255,0,0))
 
@@ -115,11 +121,11 @@ class GameConfigScene:
         # Mode selection
         for btn in self.mode_buttons:
             if btn["rect"].collidepoint(pos):
-                self.mode = btn["value"]
+                self.data.mode = btn["value"]
                 return True
 
         # Network inputs
-        if self.mode == "network":
+        if self.data.mode == "network":
             self.ip_input["active"] = self.ip_input["rect"].collidepoint(pos)
             self.port_input["active"] = self.port_input["rect"].collidepoint(pos)
 
@@ -131,7 +137,7 @@ class GameConfigScene:
         return False
 
     def handle_keydown(self, event):
-        if self.mode == "network":
+        if self.data.mode == "network":
             current_input = None
             if self.ip_input["active"]:
                 current_input = self.ip_input
@@ -151,7 +157,7 @@ class GameConfigScene:
         return False
 
     def start_game(self):
-        if self.mode == "network":
+        if self.data.mode == "network":
             if not self.validate_ip():
                 config.logger.error("Invalid IP address")
                 return
@@ -160,9 +166,11 @@ class GameConfigScene:
                 return
 
         config.logger.info(f"Starting {self.mode} game")
-        if self.mode == "1player":
+        self.data.save_json(GameConfigScene.SettingsFile)
+
+        if self.data.mode == "1player":
             config.set_scene(GameScene(GameData.new_game(config.PLAYER_COLOR, None)))
-        elif self.mode == "2local":
+        elif self.data.mode == "2local":
             config.set_scene(GameScene(GameData.new_game(config.PLAYER_COLOR, config.PLAYER2_COLOR)))
         else:
             config.set_scene(InfoScene("Not available yet\nsorry.", 2.5, GameConfigScene()))

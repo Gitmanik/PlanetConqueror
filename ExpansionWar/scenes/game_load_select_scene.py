@@ -6,7 +6,7 @@ import pygame
 from managers.save_manager import SaveManager
 
 import config
-from game_data import GameData
+from data.game_data import GameData
 from scenes.game_scene import GameScene
 
 logger = logging.getLogger(__name__)

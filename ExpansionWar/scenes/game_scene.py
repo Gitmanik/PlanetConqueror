@@ -6,7 +6,7 @@ import pygame
 import config
 from entities.card import Card
 from entities.connection import Connection
-from game_data import GameData
+from data.game_data import GameData
 from scenes.info_scene import InfoScene
 
 logger = logging.getLogger(__name__)
