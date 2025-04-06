@@ -24,7 +24,7 @@ class GameScene:
         self.info_bar_surface = pygame.Surface((config.SCREEN_WIDTH, config.GAME_INFO_BAR_HEIGHT))
         self.info_bar_surface.set_alpha(200)
         self.info_bar_surface.fill((0, 0, 0))
-        self.info_bar_font = pygame.font.Font(config.assets[config.FONT_NAME], config.PLANET_TEXT_SIZE)
+        self.info_bar_font = pygame.font.Font(config.assets[config.FONT_NAME], 48)
 
         self.cards_surface = pygame.Surface((config.SCREEN_WIDTH, config.CARDS_BAR_HEIGHT))
         self.cards_surface.set_alpha(200)

@@ -15,7 +15,7 @@ class InfoScene:
         self.background.fill((0, 0, 0))
         self.background.set_alpha(200)
 
-        self.font = pygame.font.Font(config.assets[config.FONT_NAME], int(config.PLANET_TEXT_SIZE * 1.5))
+        self.font = pygame.font.Font(config.assets[config.FONT_NAME], 72)
         self.text_surfaces = []
         for line in self.lines:
             surface = self.font.render(line.strip() or ' ', True, (255, 255, 255))
