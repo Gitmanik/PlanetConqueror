@@ -1,4 +1,5 @@
 import asyncio
+import sys
 
 import pygame
 
@@ -53,6 +54,9 @@ async def main():
         await asyncio.sleep(0)
 
 if __name__ == "__main__":
+    if sys.platform == "emscripten":
+        import platform
+        platform.document.body.style.background = "#000000"
     PygameLogManager.setup()
     SaveManager.setup()
     config.assets = AssetManager("assets.zip")
