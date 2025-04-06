@@ -1,6 +1,6 @@
 import pygame
 import logging
-from assetreader import AssetReader
+from managers.asset_manager import AssetManager
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ def load_assets():
 
     logger.info("Loading assets...")
 
-    assets = AssetReader("assets.zip")
+    assets = AssetManager("assets.zip")
 
     for file in assets.find("PlanetParts"):
         if not file.endswith(".png"):

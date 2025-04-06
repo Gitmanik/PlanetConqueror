@@ -7,7 +7,7 @@ import os
 
 logger = logging.getLogger(__name__)
 
-class AssetReader:
+class AssetManager:
     def __init__(self, zip_path):
         self.assets = {}
         with zipfile.ZipFile(zip_path, 'r') as z:
