@@ -83,8 +83,7 @@ class Planet:
 
         self.surface = planet_surface
 
-    def draw(self, screen, base_x, base_y):
-        current_ticks = pygame.time.get_ticks()
+    def draw(self, screen, base_x, base_y, current_ticks):
         if self.color != config.NO_OWNER_COLOR:
             if current_ticks - self.value_start > self.add_value_every:
                 self.value_start = current_ticks

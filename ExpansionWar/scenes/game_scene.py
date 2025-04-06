@@ -49,7 +49,12 @@ class GameScene:
         # Flag to ensure the enemy AI only acts once per enemy turn.
         self.enemy_ai_done = False
 
+        self.ticks = 0
+
     def draw(self, surface):
+        self.data.current_ticks += pygame.time.get_ticks() - self.ticks
+        self.ticks = pygame.time.get_ticks()
+
         surface.blit(self.info_bar_surface, (0,0))
         if self.data.current_turn_color in (self.data.p1color, self.data.p2color):
             surface.blit(self.cards_surface, (0, self.planets_base_y + config.GAME_SCENE_HEIGHT))
@@ -62,10 +67,10 @@ class GameScene:
         self.draw_turn(surface)
 
         for connection in self.data.connections:
-            connection.draw(self.planets_base_x, self.planets_base_y, surface)
+            connection.draw(self.planets_base_x, self.planets_base_y, surface, self.data.current_ticks)
 
         for planet in self.data.planets:
-            planet.draw(surface, self.planets_base_x, self.planets_base_y)
+            planet.draw(surface, self.planets_base_x, self.planets_base_y, self.data.current_ticks)
 
         if self.dragging_card is not None:
             self.cards[self.dragging_card].draw(surface, self.dragging_card_pos[0], self.dragging_card_pos[1])
@@ -104,14 +109,14 @@ class GameScene:
             return
 
         # Turn time
-        if pygame.time.get_ticks() - self.data.current_turn_start > config.TURN_TIME or self.data.current_turn_color not in all_playing_colors:
+        if self.data.current_ticks - self.data.current_turn_start > config.TURN_TIME or self.data.current_turn_color not in all_playing_colors:
             idx = all_playing_colors.index(self.data.current_turn_color) + 1 if self.data.current_turn_color in all_playing_colors else 0
             if idx >= len(all_playing_colors):
                 self.data.year += 1
 
             self.dragging_card = None
             self.data.current_turn_color = all_playing_colors[(idx) % len(all_playing_colors)]
-            self.data.current_turn_start = pygame.time.get_ticks()
+            self.data.current_turn_start = self.data.current_ticks
 
             if self.data.current_turn_color not in (self.data.p1color, self.data.p2color):
                 self.enemy_ai_done = False
@@ -181,7 +186,7 @@ class GameScene:
             card.draw(surface, self.card_rects[i].x, self.card_rects[i].y)
 
     def draw_turn(self, surface):
-        x = config.lerp(0, config.TURN_TIME, config.SCREEN_WIDTH, 0, pygame.time.get_ticks() - self.data.current_turn_start)
+        x = config.lerp(0, config.TURN_TIME, config.SCREEN_WIDTH, 0, self.data.current_ticks - self.data.current_turn_start)
         pygame.draw.rect(surface, self.data.current_turn_color, (self.planets_base_x, self.planets_base_y, x, 10))
 
     def handle_click(self, pos):

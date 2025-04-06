@@ -31,6 +31,8 @@ class GameData:
         self.current_turn_color = None
         self.current_turn_start = None
 
+        self.current_ticks = None
+
     @staticmethod
     def new_game(p1color, p2color, level = 1, year = 2100, year_start = None):
         data = GameData()
@@ -48,7 +50,8 @@ class GameData:
         data.level = level
 
         data.current_turn_color = p1color
-        data.current_turn_start = pygame.time.get_ticks()
+        data.current_turn_start = 0
+        data.current_ticks = 0
 
         data.generate_planets()
 
@@ -66,7 +69,7 @@ class GameData:
         data.level = self.level + 1
 
         data.current_turn_color = self.p1color
-        data.current_turn_start = pygame.time.get_ticks()
+        data.current_turn_start = self.current_ticks
 
         data.generate_planets()
 
@@ -83,6 +86,7 @@ class GameData:
             'current_turn_start': self.current_turn_start,
             'planets': [planet.to_dict() for planet in self.planets],
             'connections': [conn.to_dict(self.planets) for conn in self.connections],
+            'current_ticks': self.current_ticks,
         }
 
     # ── JSON Support ──
@@ -137,6 +141,7 @@ class GameData:
         game.current_turn_start = int(data['current_turn_start'])
         game.planets = [Planet.from_dict(pd) for pd in data['planets']]
         game.connections = [Connection.from_dict(cd, game.planets) for cd in (data.get('connections') or [])]
+        game.current_ticks = int(data['current_ticks'])
         return game
 
     # ── MongoDB Support ──
@@ -256,6 +261,8 @@ class GameData:
             data_dict['current_turn_color'] = parse_color(data_dict['current_turn_color'])
         if 'current_turn_start' in data_dict:
             data_dict['current_turn_start'] = parse_int(data_dict['current_turn_start'])
+        if 'current_ticks' in data_dict:
+            data_dict['current_ticks'] = parse_int(data_dict['current_ticks'])
 
         # Ensure 'planets' is a list.
         if 'planets' in data_dict:

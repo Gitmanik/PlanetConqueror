@@ -32,7 +32,7 @@ class MenuScene:
     def draw(self, surface):
         screen_width, screen_height = surface.get_size()
 
-        self.planet.draw(surface, 0, 0)
+        self.planet.draw(surface, 0, 0, pygame.time.get_ticks())
 
         title_rect = self.title_text.get_rect(midtop=(screen_width // 2, 50))
         surface.blit(self.title_text, title_rect)

@@ -19,8 +19,7 @@ class Connection:
     def rocket_finished(self, rocket):
         self.rockets.remove(rocket)
 
-    def draw(self, base_x, base_y, surface):
-        current_ticks = pygame.time.get_ticks()
+    def draw(self, base_x, base_y, surface, current_ticks):
 
         if self.planet.value > self.planet.rocket_upgrade and current_ticks - self.last_ticks > self.planet.send_rocket_every:
             self.last_ticks = current_ticks
