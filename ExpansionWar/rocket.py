@@ -6,12 +6,22 @@ import config
 logger = logging.getLogger(__name__)
 
 class Rocket:
+    Textures = None
+
     def __init__(self, parent, planet, other_planet):
+
+        if Rocket.Textures is None:
+            Rocket.Textures = {}
+            for file in config.assets.find("Rockets"):
+                if not file.endswith(".png"):
+                    continue
+                filename = file.split(".")[0]
+                Rocket.Textures[filename] = pygame.image.load(config.assets[f"Rockets/{file}"])
 
         assert(planet.rocket_upgrade <= 4)
         self.value = planet.rocket_upgrade
 
-        self.rocket_texture = config.rocket_assets[f"spaceRockets_00{self.value}"]
+        self.rocket_texture = Rocket.Textures[f"spaceRockets_00{self.value}"]
         self.rocket_texture = pygame.transform.scale(self.rocket_texture, (self.rocket_texture.get_width()/10, self.rocket_texture.get_height()/10))
         self.rocket_texture = pygame.transform.rotate(self.rocket_texture, -math.degrees(math.atan2(other_planet.center_y - planet.center_y, other_planet.center_x - planet.center_x)) - 90)
 

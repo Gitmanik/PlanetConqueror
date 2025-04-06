@@ -3,6 +3,8 @@ import asyncio
 import pygame
 
 import config
+from managers.asset_manager import AssetManager
+from managers.save_manager import SaveManager
 from scenes.menu_scene import MenuScene
 
 import logging
@@ -17,11 +19,14 @@ pygame.display.set_caption("Planet Conqueror")
 clock = pygame.time.Clock()
 
 async def main():
+    background = pygame.image.load(config.assets["Background.png"])
+    background = pygame.transform.scale(background, [config.SCREEN_WIDTH, config.SCREEN_HEIGHT])
+
     config.current_scene = MenuScene()
 
     running = True
     while running:
-        screen.blit(config.background, (0, 0), (0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
+        screen.blit(background, (0, 0), (0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -49,6 +54,6 @@ async def main():
 
 if __name__ == "__main__":
     PygameLogManager.setup()
-    config.load_assets()
     SaveManager.setup()
+    config.assets = AssetManager("assets.zip")
     asyncio.run(main())

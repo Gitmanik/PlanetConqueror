@@ -1,6 +1,4 @@
-import pygame
 import logging
-from managers.asset_manager import AssetManager
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +21,8 @@ PLANET_RADIUS = 60
 
 GAME_SCENE_WIDTH = SCREEN_WIDTH
 GAME_SCENE_HEIGHT = SCREEN_HEIGHT - GAME_INFO_BAR_HEIGHT - CARDS_BAR_HEIGHT
+
+FONT_NAME = "Kenney Future Narrow.ttf"
 
 
 # Colors
@@ -47,33 +47,6 @@ MONGO_DB = "test"
 MONGO_COLLECTION = "planet"
 
 assets = None
-background = None
-planet_assets = dict()
-rocket_assets = dict()
-FONT_NAME = "Kenney Future Narrow.ttf"
-
-def load_assets():
-    global assets
-    global background
-
-    logger.info("Loading assets...")
-
-    assets = AssetManager("assets.zip")
-
-    for file in assets.find("PlanetParts"):
-        if not file.endswith(".png"):
-            continue
-        filename = file.split(".")[0]
-        planet_assets[filename] = pygame.image.load(assets[f"PlanetParts/{file}"])
-
-    for file in assets.find("Rockets"):
-        if not file.endswith(".png"):
-            continue
-        filename = file.split(".")[0]
-        rocket_assets[filename] = pygame.image.load(assets[f"Rockets/{file}"])
-
-    background = pygame.image.load(assets["Background.png"])
-    background = pygame.transform.scale(background, [SCREEN_WIDTH, SCREEN_HEIGHT])
 
 current_scene = None
 def set_scene(new_scene):
