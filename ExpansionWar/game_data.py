@@ -5,7 +5,7 @@ import random
 import sys
 import xml.etree.ElementTree as ET
 
-from save_manager import SaveManager
+from managers.save_manager import SaveManager
 
 if sys.platform != "emscripten":
     import pymongo

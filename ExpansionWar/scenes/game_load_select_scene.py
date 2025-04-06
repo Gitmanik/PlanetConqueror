@@ -3,7 +3,7 @@ import os
 
 import pygame
 
-from save_manager import SaveManager
+from managers.save_manager import SaveManager
 
 import config
 from game_data import GameData
