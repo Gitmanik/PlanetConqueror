@@ -63,5 +63,5 @@ class Rocket:
     @classmethod
     def from_dict(cls, data, connection):
         rocket = cls(connection, connection.planet, connection.other_planet)
-        rocket.current_time = int(data.get('current_time', 0))
+        rocket.current_time = int(data['current_time'])
         return rocket

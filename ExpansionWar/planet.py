@@ -162,12 +162,6 @@ class Planet:
 
     @classmethod
     def from_dict(cls, data):
-        def parse_float(val):
-            return float(val) if not isinstance(val, float) else val
-
-        def parse_int(val):
-            return int(float(val))
-
         def parse_color(val):
             if isinstance(val, tuple):
                 return val
@@ -176,17 +170,17 @@ class Planet:
             val = val.strip("()")
             return tuple(int(float(x.strip())) for x in val.split(','))
 
-        x = parse_float(data['x'])
-        y = parse_float(data['y'])
+        x = float(data['x'])
+        y = float(data['y'])
         color = parse_color(data['color'])
-        radius = parse_float(data['radius'])
-        base_texture_name = data.get('base_texture_name')
-        noise_texture_name = data.get('noise_texture_name')
-        light_texture_name = data.get('light_texture_name')
+        radius = float(data['radius'])
+        base_texture_name = data['base_texture_name']
+        noise_texture_name = data['noise_texture_name']
+        light_texture_name = data['light_texture_name']
 
         planet = cls(x, y, color, radius, True, base_texture_name, noise_texture_name, light_texture_name)
-        planet.value = parse_int(data.get('value', 1))
-        planet.rocket_upgrade = parse_int(data.get('rocket_upgrade', 1))
-        planet.satellite_upgrade = parse_int(data.get('satellite_upgrade', 0))
+        planet.value = int(data['value'])
+        planet.rocket_upgrade = int(data['rocket_upgrade'])
+        planet.satellite_upgrade = int(data['satellite_upgrade'])
         planet.create_planet_surface()
         return planet
