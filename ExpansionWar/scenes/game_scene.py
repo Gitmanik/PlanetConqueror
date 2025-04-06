@@ -99,11 +99,11 @@ class GameScene:
         # End condition
         if len(all_colors) == 1:
             if all_colors.pop() in (self.data.p1color, self.data.p2color):
-                config.logger.info("win")
+                logger.info("win")
                 self.data.level += 1
                 config.set_scene(InfoScene("Mission\nSuccessful!", 2.5, GameScene(self.data.next_level())))
             else:
-                config.logger.info("lose")
+                logger.info("lose")
                 from scenes.menu_scene import MenuScene
                 config.set_scene(InfoScene("Mission\nfailed.", 2.5, MenuScene()))
             return
@@ -195,7 +195,7 @@ class GameScene:
                 logger.debug(f"Planet {planet} clicked")
                 if self.selected_planet is None:
                     if planet.color not in (self.data.p1color, self.data.p2color) or (self.data.p2color is not None and self.data.current_turn_color != planet.color):
-                        config.logger.debug("Enemy planet clicked")
+                        logger.debug("Enemy planet clicked")
                         return True
 
                     if planet.value < 1:
@@ -207,9 +207,9 @@ class GameScene:
                     return True
                 elif self.selected_planet != planet:
                     if planet in [connection.other_planet for connection in self.data.connections if connection.planet == self.selected_planet]:
-                        config.logger.warning("Planets already connected!")
+                        logger.warning("Planets already connected!")
                     else:
-                        config.logger.info("Connected planets")
+                        logger.info("Connected planets")
                         self.data.connections.append(Connection(self.selected_planet, planet))
 
                     self.selected_planet.selected = False
@@ -257,7 +257,7 @@ class GameScene:
         if self.dragging_card is not None:
             for planet in self.data.planets:
                 if planet.is_clicked(self.planets_base_x, self.planets_base_y, pos):
-                    config.logger.info(f"Card dropped on planet {planet}")
+                    logger.info(f"Card dropped on planet {planet}")
                     if self.dragging_card == 0:
                         if planet.color == self.data.current_turn_color and planet.value > config.SATELLITE_COST and planet.satellite_upgrade < 6:
                             planet.satellite_upgrade += 1

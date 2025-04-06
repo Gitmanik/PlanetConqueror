@@ -108,7 +108,7 @@ class GameLoadSelectScene:
 
     def load_game(self, selected_file):
         try:
-            config.logger.info(f"Loading game from {selected_file}")
+            logger.info(f"Loading game from {selected_file}")
             ext = os.path.splitext(selected_file)[1]
             if ext == ".json":
                 config.set_scene(GameScene(GameData.load_json(selected_file)))
@@ -118,7 +118,7 @@ class GameLoadSelectScene:
                 config.set_scene(GameScene(GameData.load_from_mongo(os.path.splitext(selected_file)[0])))
 
         except Exception as e:
-            config.logger.error(f"Load failed: {str(e)}")
+            logger.error(f"Load failed: {str(e)}")
             from scenes.info_scene import InfoScene
             config.set_scene(InfoScene(f"Load failed!\n{str(e)}", 3, self))
 

@@ -1,4 +1,5 @@
 import pygame
+import logging
 
 import config
 from data.game_data import GameData
@@ -7,6 +8,7 @@ from managers.save_manager import SaveManager
 from scenes.game_scene import GameScene
 from scenes.info_scene import InfoScene
 
+logger = logging.getLogger(__name__)
 
 class GameConfigScene:
     SettingsFile = "menu_data.menujson"
@@ -159,15 +161,15 @@ class GameConfigScene:
     def start_game(self):
         if self.data.mode == "network":
             if not self.validate_ip():
-                config.logger.error("Invalid IP address")
+                logger.error("Invalid IP address")
                 return
             if not self.validate_port():
-                config.logger.error("Invalid port number")
+                logger.error("Invalid port number")
                 return
 
-        config.logger.info(f"Starting {self.mode} game")
         self.data.save_json(GameConfigScene.SettingsFile)
 
+        logger.info(f"Starting {self.data.mode} game")
         if self.data.mode == "1player":
             config.set_scene(GameScene(GameData.new_game(config.PLAYER_COLOR, None)))
         elif self.data.mode == "2local":
