@@ -5,6 +5,9 @@ import config
 
 
 class PygameLogManager(logging.Handler):
+
+    Instance = None
+
     def __init__(self):
         super().__init__()
 
@@ -27,3 +30,21 @@ class PygameLogManager(logging.Handler):
             text_surface = self.font.render(line, True, (255, 235, 42))
             surface.blit(text_surface, (10, y))
             y += self.font.get_linesize()
+
+    @staticmethod
+    def setup():
+        logger = logging.getLogger()
+        logger.setLevel(logging.DEBUG)
+
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+
+        pygame_handler = PygameLogManager()
+        pygame_handler.setLevel(logging.DEBUG)
+        pygame_handler.setFormatter(formatter)
+        logger.addHandler(pygame_handler)
+
+        PygameLogManager.Instance = pygame_handler

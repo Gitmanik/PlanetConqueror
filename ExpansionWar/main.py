@@ -42,31 +42,14 @@ async def main():
 
         config.current_scene.draw(screen)
         if config.ENABLE_PYGAME_LOG:
-            pygame_handler.draw(screen)
+            PygameLogManager.Instance.draw(screen)
 
         pygame.display.flip()
         clock.tick(60)
         await asyncio.sleep(0)
 
-pygame_handler = None
-def setup_logger():
-    global pygame_handler
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
-
-    pygame_handler = PygameLogManager()
-    pygame_handler.setLevel(logging.DEBUG)
-    pygame_handler.setFormatter(formatter)
-    logger.addHandler(pygame_handler)
-
 if __name__ == "__main__":
-    setup_logger()
+    PygameLogManager.setup()
     if not os.path.exists(config.SAVES_FOLDER):
         logger.info(f"Creating {config.SAVES_FOLDER} folder")
         os.makedirs(config.SAVES_FOLDER)
