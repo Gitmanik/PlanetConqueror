@@ -4,12 +4,13 @@ import logging
 import config
 
 
-class PygameHandler(logging.Handler):
-    def __init__(self, max_lines=10):
+class PygameLogManager(logging.Handler):
+    def __init__(self):
         super().__init__()
-        self.max_lines = max_lines
-        self.log_lines = []
+
         self.font = pygame.font.Font(None, 20)
+        self.log_lines = []
+        self.max_lines = config.SCREEN_HEIGHT // self.font.get_linesize()
 
     def emit(self, record):
         try:
@@ -21,7 +22,7 @@ class PygameHandler(logging.Handler):
             self.handleError(record)
 
     def draw(self, surface):
-        y = 10
+        y = 0
         for line in self.log_lines:
             text_surface = self.font.render(line, True, (255, 235, 42))
             surface.blit(text_surface, (10, y))

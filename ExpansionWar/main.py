@@ -8,7 +8,7 @@ from scenes.menu_scene import MenuScene
 
 import logging
 logger = logging.getLogger(__name__)
-from pygame_logger import PygameHandler
+from managers.pygame_log_manager import PygameLogManager
 
 
 pygame.init()
@@ -60,7 +60,7 @@ def setup_logger():
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
-    pygame_handler = PygameHandler(config.PYGAME_LOG_LIMIT)
+    pygame_handler = PygameLogManager()
     pygame_handler.setLevel(logging.DEBUG)
     pygame_handler.setFormatter(formatter)
     logger.addHandler(pygame_handler)
