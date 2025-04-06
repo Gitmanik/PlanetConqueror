@@ -1,12 +1,12 @@
 import json
 import logging
 import math
-import os
 import random
 import sys
 import xml.etree.ElementTree as ET
 
-import pygame
+from save_manager import SaveManager
+
 if sys.platform != "emscripten":
     import pymongo
     from pymongo.errors import ConnectionFailure
@@ -18,59 +18,32 @@ from planet import Planet
 logger = logging.getLogger(__name__)
 
 class GameData:
-    def __init__(self):
-        self.p1color = None
-        self.p2color = None
-        self.planets = None
-        self.rockets = None
-        self.connections = None
-        self.year = None
-        self.year_start = None
-        self.level = None
+    def __init__(self, p1color : (int, int, int), p2color : (int, int, int), year : int, year_start : int, level : int):
+        self.p1color : (int, int, int) = p1color
+        self.p2color : (int, int, int) = p2color
+        self.planets : [Planet] = []
+        self.connections : [Connection] = []
+        self.year : int = year
+        self.year_start : int = year_start
+        self.level : int = level
 
-        self.current_turn_color = None
-        self.current_turn_start = None
+        self.current_turn_color : (int, int, int) = p1color
 
-        self.current_ticks = None
+        self.current_turn_start : int = 0
+        self.current_ticks : int = 0
 
     @staticmethod
     def new_game(p1color, p2color, level = 1, year = 2100, year_start = None):
-        data = GameData()
+        if year_start is None:
+            year_start = year
 
-        data.p1color = p1color
-        data.p2color = p2color
-        data.planets = []
-        data.rockets = []
-        data.connections = []
-        data.year = year
-        if year_start is not None:
-            data.year_start = year_start
-        else:
-            data.year_start = year
-        data.level = level
-
-        data.current_turn_color = p1color
-        data.current_turn_start = 0
-        data.current_ticks = 0
-
+        data = GameData(p1color, p2color, year, year_start, level)
         data.generate_planets()
 
         return data
 
     def next_level(self):
-        data = GameData()
-        data.p1color = self.p1color
-        data.p2color = self.p2color
-        data.planets = []
-        data.rockets = []
-        data.connections = []
-        data.year = self.year
-        data.year_start = self.year_start
-        data.level = self.level + 1
-
-        data.current_turn_color = self.p1color
-        data.current_turn_start = self.current_ticks
-
+        data = GameData(self.p1color, self.p2color, self.year, self.year_start, self.level + 1)
         data.generate_planets()
 
         return data
@@ -89,60 +62,30 @@ class GameData:
             'current_ticks': self.current_ticks,
         }
 
-    # ── JSON Support ──
-
-    def save_json(self, filename):
-        if sys.platform == "emscripten":
-            from platform import window
-            stored = window.localStorage.getItem(config.LOCAL_STORAGE)
-            try:
-                files_data = json.loads(stored) if stored else {"json": {}, "xml": {}}
-            except Exception:
-                files_data = {"json": {}, "xml": {}}
-            # Store under the "json" sub-dictionary
-            files_data["json"][filename] = self.to_dict()
-            window.localStorage.setItem(config.LOCAL_STORAGE, json.dumps(files_data))
-            logger.info(f"Saved GameData JSON to localStorage under key '{config.LOCAL_STORAGE}' with filename {filename}")
-        else:
-            logger.info(f"Saving GameData to {filename}")
-            with open(os.path.join(config.SAVES_FOLDER, filename), 'w') as f:
-                json.dump(self.to_dict(), f)
-
-    @staticmethod
-    def load_json(filename):
-        if sys.platform == "emscripten":
-            from platform import window
-            stored = window.localStorage.getItem(config.LOCAL_STORAGE)
-            try:
-                files_data = json.loads(stored) if stored else {"json": {}, "xml": {}}
-            except Exception:
-                files_data = {"json": {}, "xml": {}}
-            if filename in files_data["json"]:
-                logger.info(f"Loading GameData JSON from localStorage under key '{config.LOCAL_STORAGE}' with filename {filename}")
-                return GameData.from_dict(files_data["json"][filename])
-            else:
-                logger.error(f"JSON file {filename} not found in localStorage")
-                return None
-        else:
-            logger.info(f"Loading GameData from {filename}")
-            with open(filename, 'r') as f:
-                data = json.load(f)
-            return GameData.from_dict(data)
-
     @staticmethod
     def from_dict(data):
-        game = GameData()
-        game.p1color = tuple(data['p1color'])
-        game.p2color = tuple(data['p2color']) if data['p2color'] is not None else None
-        game.year = int(data['year'])
-        game.year_start = int(data['year_start'])
-        game.level = int(data['level'])
+        game = GameData(tuple(data['p1color']),
+                        tuple(data['p2color']) if data['p2color'] is not None else None,
+                        int(data['year']),
+                        int(data['year_start']),
+                        int(data['level'])
+                        )
         game.current_turn_color = tuple(data['current_turn_color'])
         game.current_turn_start = int(data['current_turn_start'])
         game.planets = [Planet.from_dict(pd) for pd in data['planets']]
         game.connections = [Connection.from_dict(cd, game.planets) for cd in (data.get('connections') or [])]
         game.current_ticks = int(data['current_ticks'])
         return game
+
+    # ── JSON Support ──
+
+    def save_json(self, filename):
+        SaveManager.save_file(filename, json.dumps(self.to_dict()))
+
+    @staticmethod
+    def load_json(filename):
+        str = SaveManager.read_file(filename)
+        return GameData.from_dict(json.loads(str))
 
     # ── MongoDB Support ──
     def save_to_mongo(self, filename):
@@ -180,6 +123,7 @@ class GameData:
         except ConnectionFailure:
             logger.error("Server not available")
             return None
+
     # ── XML Support ──
     def to_xml(self):
         data_dict = self.to_dict()
@@ -187,24 +131,9 @@ class GameData:
         return root
 
     def save_xml(self, filename):
-        if sys.platform == "emscripten":
-            from platform import window
-            root = self.to_xml()
-            xml_str = ET.tostring(root, encoding='utf-8', method='xml').decode('utf-8')
-            stored = window.localStorage.getItem(config.LOCAL_STORAGE)
-            try:
-                files_data = json.loads(stored) if stored else {"json": {}, "xml": {}}
-            except Exception:
-                files_data = {"json": {}, "xml": {}}
-            # Store under the "xml" sub-dictionary
-            files_data["xml"][filename] = xml_str
-            window.localStorage.setItem(config.LOCAL_STORAGE, json.dumps(files_data))
-            logger.info(f"Saved GameData XML to localStorage under key '{config.LOCAL_STORAGE}' with filename {filename}")
-        else:
-            logger.info(f"Saving GameData to {filename}")
-            root = self.to_xml()
-            tree = ET.ElementTree(root)
-            tree.write(os.path.join(config.SAVES_FOLDER, filename), encoding='utf-8', xml_declaration=True)
+        root = self.to_xml()
+        xml_str = ET.tostring(root, encoding='utf-8', method='xml').decode('utf-8')
+        SaveManager.save_file(filename, xml_str)
 
     @staticmethod
     def load_xml(filename):
@@ -214,73 +143,14 @@ class GameData:
             val = val.strip("()")
             return tuple(int(float(x.strip())) for x in val.split(','))
 
-        def parse_int(val):
-            try:
-                return int(float(val))
-            except (ValueError, TypeError):
-                return 0
-
-        def parse_float(val):
-            try:
-                return float(val)
-            except (ValueError, TypeError):
-                return 0.0
-
-        if sys.platform == "emscripten":
-            from platform import window
-            stored = window.localStorage.getItem(config.LOCAL_STORAGE)
-            try:
-                files_data = json.loads(stored) if stored else {"json": {}, "xml": {}}
-            except Exception:
-                files_data = {"json": {}, "xml": {}}
-            if filename in files_data["xml"]:
-                xml_str = files_data["xml"][filename]
-                logger.info(f"Loading GameData XML from localStorage under key '{config.LOCAL_STORAGE}' with filename {filename}")
-                root = ET.fromstring(xml_str)
-            else:
-                logger.error(f"XML file {filename} not found in localStorage")
-                return None
-        else:
-            logger.info(f"Loading GameData from {filename}")
-            tree = ET.parse(filename)
-            root = tree.getroot()
+        str = SaveManager.read_file(filename)
+        root = ET.fromstring(str)
 
         data_dict = xml_to_dict(root)
 
-        if 'p1color' in data_dict:
-            data_dict['p1color'] = parse_color(data_dict['p1color'])
-        if 'p2color' in data_dict:
-            data_dict['p2color'] = parse_color(data_dict['p2color'])
-        if 'year' in data_dict:
-            data_dict['year'] = parse_int(data_dict['year'])
-        if 'year_start' in data_dict:
-            data_dict['year_start'] = parse_int(data_dict['year_start'])
-        if 'level' in data_dict:
-            data_dict['level'] = parse_int(data_dict['level'])
-        if 'current_turn_color' in data_dict:
-            data_dict['current_turn_color'] = parse_color(data_dict['current_turn_color'])
-        if 'current_turn_start' in data_dict:
-            data_dict['current_turn_start'] = parse_int(data_dict['current_turn_start'])
-        if 'current_ticks' in data_dict:
-            data_dict['current_ticks'] = parse_int(data_dict['current_ticks'])
-
-        # Ensure 'planets' is a list.
-        if 'planets' in data_dict:
-            if not isinstance(data_dict['planets'], list):
-                data_dict['planets'] = [data_dict['planets']]
-        else:
-            data_dict['planets'] = []
-
-        # Ensure 'connections' is a list.
-        if 'connections' in data_dict:
-            if not isinstance(data_dict['connections'], list):
-                # Sometimes an empty <connections /> element becomes an empty string or dict.
-                if data_dict['connections'] in (None, "", {}):
-                    data_dict['connections'] = []
-                else:
-                    data_dict['connections'] = [data_dict['connections']]
-        else:
-            data_dict['connections'] = []
+        data_dict['p1color'] = parse_color(data_dict['p1color'])
+        data_dict['p2color'] = parse_color(data_dict['p2color'])
+        data_dict['current_turn_color'] = parse_color(data_dict['current_turn_color'])
 
         return GameData.from_dict(data_dict)
 
