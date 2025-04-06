@@ -1,7 +1,7 @@
 import pygame
 import random
 import config
-from planet import Planet
+from entities.planet import Planet
 
 
 class HowToPlayScene:

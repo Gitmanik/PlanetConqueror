@@ -12,8 +12,8 @@ if sys.platform != "emscripten":
     from pymongo.errors import ConnectionFailure
 
 import config
-from connection import Connection
-from planet import Planet
+from entities.connection import Connection
+from entities.planet import Planet
 
 logger = logging.getLogger(__name__)
 

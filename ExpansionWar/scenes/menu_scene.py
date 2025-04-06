@@ -1,10 +1,8 @@
 import pygame
 import config
-from game_data import GameData
-from planet import Planet
+from entities.planet import Planet
 from scenes.game_config_scene import GameConfigScene
 from scenes.game_load_select_scene import GameLoadSelectScene
-from scenes.game_scene import GameScene
 from scenes.how_to_play import HowToPlayScene
 
 class MenuScene:

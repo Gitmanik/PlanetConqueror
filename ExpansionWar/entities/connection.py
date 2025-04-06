@@ -1,7 +1,7 @@
 import math
 import pygame
 
-from rocket import Rocket
+from entities.rocket import Rocket
 
 
 class Connection:

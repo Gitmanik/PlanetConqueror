@@ -4,8 +4,8 @@ import random
 import pygame
 
 import config
-from card import Card
-from connection import Connection
+from entities.card import Card
+from entities.connection import Connection
 from game_data import GameData
 from scenes.info_scene import InfoScene
 
