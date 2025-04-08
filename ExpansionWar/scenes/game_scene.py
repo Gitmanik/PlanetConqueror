@@ -4,8 +4,7 @@ import pygame
 
 import config
 from entities.card import Card
-from entities.connection import Connection
-from managers.game_manager import GameManager
+from managers.game_manager import GameManager, GameMode
 
 logger = logging.getLogger(__name__)
 
@@ -47,13 +46,19 @@ class GameScene:
     def draw(self, surface):
         self.manager.tick()
 
+        if self.manager.data is None:
+            return
+
         surface.blit(self.info_bar_surface, (0,0))
         if self.manager.data.current_turn_color in (self.manager.data.p1color, self.manager.data.p2color):
             surface.blit(self.cards_surface, (0, self.planets_base_y + config.GAME_SCENE_HEIGHT))
 
         self.draw_info(surface)
         self.draw_cards(surface)
-        if self.manager.data.current_turn_color not in (self.manager.data.p1color, self.manager.data.p2color):
+
+        if self.manager.game_mode == GameMode.LOCAL_TWO_PLAYER and (
+            self.manager.data.current_turn_color not in (self.manager.data.p1color, self.manager.data.p2color)
+        ) or self.manager.data.current_turn_color != self.manager.data.p1color:
             surface.blit(self.cards_surface, (0, self.planets_base_y + config.GAME_SCENE_HEIGHT))
 
         self.draw_turn(surface)
@@ -95,9 +100,14 @@ class GameScene:
             if planet.is_clicked(self.planets_base_x, self.planets_base_y, pos):
                 logger.debug(f"Planet {planet} clicked")
                 if self.selected_planet is None:
-                    if planet.color not in (self.manager.data.p1color, self.manager.data.p2color) or (self.manager.data.p2color is not None and self.manager.data.current_turn_color != planet.color):
-                        logger.debug("Enemy planet clicked")
-                        return True
+                    if self.manager.game_mode == GameMode.LOCAL_TWO_PLAYER:
+                        if planet.color not in (self.manager.data.p1color, self.manager.data.p2color) or self.manager.data.current_turn_color != planet.color:
+                            logger.debug("Enemy planet clicked")
+                            return True
+                    elif self.manager.game_mode in (GameMode.HOST, GameMode.CLIENT):
+                        if planet.color != self.manager.data.p1color:
+                            logger.debug("Enemy player's planet clicked")
+                            return True
 
                     if planet.value < 1:
                         logger.warning("Planet has value less than 1")
@@ -124,18 +134,29 @@ class GameScene:
         for connection in self.manager.data.connections:
             if connection.is_clicked(self.planets_base_x, self.planets_base_y, pos):
                 logger.debug(f"Connection {connection} clicked")
-                if connection.planet.color  in (self.manager.data.p1color, self.manager.data.p2color) and (self.manager.data.p2color is None or (self.manager.data.p2color is not None and self.manager.data.current_turn_color == connection.planet.color)):
-                    self.manager.connection_deleted(connection)
+                if self.manager.game_mode == GameMode.LOCAL_TWO_PLAYER:
+                    if connection.planet.color in (self.manager.data.p1color, self.manager.data.p2color) and self.manager.data.current_turn_color != connection.planet.color:
+                        logger.debug("Enemy connection clicked")
+                        logger.debug("Connection removed")
+                        return True
+
+                if connection.planet.color != self.manager.data.p1color:
+                    logger.debug("Enemy player's connection clicked")
+                    return True
+
+                self.manager.connection_deleted(connection)
                 return True
 
-        if self.manager.data.current_turn_color in (self.manager.data.p1color, self.manager.data.p2color):
-            for i, rect in enumerate(self.get_card_rects()):
-                if rect.collidepoint(pos):
-                    logger.debug(f"Card {i} clicked")
-                    self.dragging_card = i
-                    self.dragging_card_offset = (pos[0] - rect.x, pos[1] - rect.y)
-                    self.dragging_card_pos = (rect.x, rect.y)
-                    return True
+        if (self.manager.game_mode == GameMode.LOCAL_TWO_PLAYER and (
+            self.manager.data.current_turn_color in (self.manager.data.p1color, self.manager.data.p2color))) or (
+            self.manager.data.current_turn_color == self.manager.data.p1color):
+                for i, rect in enumerate(self.get_card_rects()):
+                    if rect.collidepoint(pos):
+                        logger.debug(f"Card {i} clicked")
+                        self.dragging_card = i
+                        self.dragging_card_offset = (pos[0] - rect.x, pos[1] - rect.y)
+                        self.dragging_card_pos = (rect.x, rect.y)
+                        return True
 
         if self.save_btn_rect.collidepoint(pos):
             self.manager.data.save_json('save.json')

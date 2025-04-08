@@ -4,6 +4,7 @@ import pygame
 
 import config
 from data.menu_data import MenuData
+from managers.game_manager import GameMode
 from managers.save_manager import SaveManager
 
 logger = logging.getLogger(__name__)
@@ -214,8 +215,26 @@ class GameConfigScene:
                     logger.error("Invalid port number")
                     return
 
-        logger.info(f"Starting {self.data.mode} game in {self.data.network_mode} mode")
-        config.gm.new_game(self.data.mode, self.ip_input["text"], self.port_input["text"])
+        mode = self.data.mode
+
+        if mode == "network":
+            if self.data.network_mode == "client":
+                mode = "client"
+            else:
+                mode = "host"
+
+        match mode:
+            case "client":
+                mode = GameMode.CLIENT
+            case "host":
+                mode = GameMode.HOST
+            case "1player":
+                mode = GameMode.SINGLE_PLAYER
+            case "2local":
+                mode = GameMode.LOCAL_TWO_PLAYER
+
+        logger.info(f"Starting {mode} game in {self.data.mode} mode")
+        config.gm.new_game(mode, self.ip_input["text"], self.port_input["text"])
 
     def validate_ip(self):
         octets = self.ip_input["text"].split('.')
