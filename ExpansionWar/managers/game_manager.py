@@ -91,9 +91,6 @@ class GameManager:
             from scenes.info_scene import InfoScene
             config.set_scene(InfoScene(f"Load failed!\n{str(e)}", 3, self))
 
-    def sync(self):
-        pass
-
     def tick(self):
 
         if self.game_mode == GameMode.HOST and self.conn is None:
