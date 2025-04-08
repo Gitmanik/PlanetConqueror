@@ -5,6 +5,7 @@ import random
 import socket
 import threading
 import json
+import time
 from enum import Enum
 
 import pygame
@@ -38,6 +39,7 @@ class GameManager:
         self.socket : socket = None
         self.conn : socket = None
         self.network_thread = None
+        self.last_tick_sync = 0
 
     def new_game(self, mode: GameMode , ip: str = None, port: str = None):
         from scenes.game_scene import GameScene
@@ -92,7 +94,6 @@ class GameManager:
             config.set_scene(InfoScene(f"Load failed!\n{str(e)}", 3, self))
 
     def tick(self):
-
         if self.game_mode == GameMode.HOST and self.conn is None:
             logger.info("Waiting for connection")
             self.ticks = pygame.time.get_ticks()
@@ -104,6 +105,11 @@ class GameManager:
 
         self.data.current_ticks += pygame.time.get_ticks() - self.ticks
         self.ticks = pygame.time.get_ticks()
+
+        if self.game_mode == GameMode.HOST and self.data.current_ticks - self.last_tick_sync > 1000:
+            self.last_tick_sync = self.data.current_ticks
+            self.sync_ticks()
+
         all_colors = sorted(set(planet.color for planet in self.data.planets))
         all_playing_colors = sorted(
             set(planet.color for planet in self.data.planets if planet.color != config.NO_OWNER_COLOR))
@@ -463,11 +469,27 @@ class GameManager:
                 logger.info("Processed connection_created update from host")
             elif action == "connection_deleted":
                 self.data.connections.pop(message.get("connection_index"))
+            elif action == "tick_sync":
+                new_ticks = int(message.get("ticks"))
+                send_timestamp = int(message.get("send_timestamp"))
+                client_receive = int(time.time() * 1000)
+                offset = client_receive - send_timestamp
+                logger.debug(f"Host synced ticks: old={self.data.current_ticks}, new={new_ticks}, offset={offset}")
+                self.data.current_ticks = new_ticks + offset
 
     def send_full_data(self):
         if self.game_mode == GameMode.HOST and self.conn:
             message = {
                 "action": "full_sync",
                 "game_data": self.data.to_dict()
+            }
+            self.send_network_message(message)
+
+    def sync_ticks(self):
+        if self.game_mode == GameMode.HOST and self.conn:
+            message = {
+                "action": "tick_sync",
+                "send_timestamp": int(time.time() * 1000),
+                "ticks": self.data.current_ticks
             }
             self.send_network_message(message)
