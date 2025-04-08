@@ -194,8 +194,13 @@ class GameConfigScene:
                     char = event.unicode
                     if current_input == self.port_input and not char.isdigit():
                         return
-                    if current_input == self.ip_input and (char.isdigit() or char in ['.', '']):
-                        current_input["text"] += char
+                    if current_input == self.ip_input and not (char.isdigit() or char in ['.', '']):
+                        return
+
+                    current_input["text"] += char
+                    self.data.ip = self.ip_input["text"]
+                    self.data.port = self.port_input["text"]
+                    self.data.save_json(GameConfigScene.SettingsFile)
                 return True
         return False
 
