@@ -5,11 +5,12 @@ import pygame
 import config
 from entities.card import Card
 from entities.connection import Connection
+from managers.game_manager import GameManager
 
 logger = logging.getLogger(__name__)
 
 class GameScene:
-    def __init__(self, manager):
+    def __init__(self, manager : GameManager):
 
         self.manager = manager
 
@@ -110,7 +111,7 @@ class GameScene:
                         logger.warning("Planets already connected!")
                     else:
                         logger.info("Connected planets")
-                        self.manager.data.connections.append(Connection(self.selected_planet, planet))
+                        self.manager.connection_created(self.selected_planet, planet)
 
                     self.selected_planet.selected = False
                     self.selected_planet = None
@@ -124,7 +125,7 @@ class GameScene:
             if connection.is_clicked(self.planets_base_x, self.planets_base_y, pos):
                 logger.debug(f"Connection {connection} clicked")
                 if connection.planet.color  in (self.manager.data.p1color, self.manager.data.p2color) and (self.manager.data.p2color is None or (self.manager.data.p2color is not None and self.manager.data.current_turn_color == connection.planet.color)):
-                    self.manager.data.connections.remove(connection)
+                    self.manager.connection_deleted(connection)
                 return True
 
         if self.manager.data.current_turn_color in (self.manager.data.p1color, self.manager.data.p2color):
@@ -157,18 +158,7 @@ class GameScene:
         if self.dragging_card is not None:
             for planet in self.manager.data.planets:
                 if planet.is_clicked(self.planets_base_x, self.planets_base_y, pos):
-                    logger.info(f"Card dropped on planet {planet}")
-                    if self.dragging_card == 0:
-                        if planet.color == self.manager.data.current_turn_color and planet.value > config.SATELLITE_COST and planet.satellite_upgrade < 6:
-                            planet.satellite_upgrade += 1
-                            planet.value -= config.SATELLITE_COST
-                            logger.info(f"Upgraded Satellite on planet {planet}, new value: {planet.satellite_upgrade}")
-                    if self.dragging_card == 1:
-                        if planet.color == self.manager.data.current_turn_color and planet.value > config.ROCKET_COST and planet.rocket_upgrade < 4:
-                            planet.rocket_upgrade += 1
-                            planet.value -= config.ROCKET_COST
-                            logger.info(f"Upgraded Rocket on planet {planet}, new value: {planet.rocket_upgrade}")
-                    break
+                    self.manager.card_dropped(self.dragging_card, planet)
 
             for planet in self.manager.data.planets:
                 planet.apply_black_surface = False

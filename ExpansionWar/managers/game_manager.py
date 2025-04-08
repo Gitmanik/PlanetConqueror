@@ -10,7 +10,6 @@ from data.game_data import GameData
 from entities.connection import Connection
 from entities.planet import Planet
 from scenes.game_config_scene import GameConfigScene
-from scenes.game_scene import GameScene
 from scenes.info_scene import InfoScene
 
 logger = logging.getLogger(__name__)
@@ -26,6 +25,7 @@ class GameManager:
         self.enemy_ai_done = False
 
     def new_game(self, mode : str, ip : str = None, port : str = None):
+        from scenes.game_scene import GameScene
         if mode == "1player":
             self.data = GameData(config.PLAYER_COLOR, None, 2100, 2100, 1)
             self.generate_planets()
@@ -44,13 +44,15 @@ class GameManager:
         config.set_scene(GameScene(self))
 
     def next_level(self):
-        self.data = GameData(self.p1color, self.p2color, self.year, self.year_start, self.level + 1)
-        self.data.generate_planets()
+        from scenes.game_scene import GameScene
+        self.data = GameData(self.data.p1color, self.data.p2color, self.data.year, self.data.year_start, self.data.level + 1)
+        self.generate_planets()
 
         config.set_scene(GameScene(self))
 
 
-    def load_game(self, selected_file):
+    def load_game(self, selected_file : str):
+        from scenes.game_scene import GameScene
         try:
             logger.info(f"Loading game from {selected_file}")
             ext = os.path.splitext(selected_file)[1]
@@ -117,13 +119,34 @@ class GameManager:
             if idx >= len(all_playing_colors):
                 self.data.year += 1
 
-            self.dragging_card = None
-            self.data.current_turn_color = all_playing_colors[(idx) % len(all_playing_colors)]
+            config.current_scene.dragging_card = None
+            self.data.current_turn_color = all_playing_colors[idx % len(all_playing_colors)]
             self.data.current_turn_start = self.data.current_ticks
 
             if self.data.current_turn_color not in (self.data.p1color, self.data.p2color):
                 self.enemy_ai_done = False
 
+    def card_dropped(self, card : int, planet : Planet):
+        logger.info(f"Card dropped on planet {planet}")
+        if card == 0:
+            if planet.color == self.data.current_turn_color and planet.value > config.SATELLITE_COST and planet.satellite_upgrade < 6:
+                planet.satellite_upgrade += 1
+                planet.value -= config.SATELLITE_COST
+                logger.info(f"Upgraded Satellite on planet {planet}, new value: {planet.satellite_upgrade}")
+        elif card == 1:
+            if planet.color == self.data.current_turn_color and planet.value > config.ROCKET_COST and planet.rocket_upgrade < 4:
+                planet.rocket_upgrade += 1
+                planet.value -= config.ROCKET_COST
+                logger.info(f"Upgraded Rocket on planet {planet}, new value: {planet.rocket_upgrade}")
+        else:
+            logger.error(f"Wrong card type: {card}")
+
+    def connection_created(self, planet : Planet, other_planet : Planet):
+        self.data.connections.append(Connection(planet, other_planet))
+
+    def connection_deleted(self, connection : Connection):
+        self.data.connections.remove(connection)
+    # Enemy AI
 
     def run_enemy_ai_turn(self):
         enemy_planets = [planet for planet in self.data.planets if planet.color == self.data.current_turn_color]
@@ -146,8 +169,7 @@ class GameManager:
                     f"Enemy {self.data.current_turn_color} {chosen} upgraded Rocket, new upgrade: {chosen.rocket_upgrade}")
         self.enemy_ai_done = True
 
-
-    def run_enemy_ai_continous(self, color):
+    def run_enemy_ai_continous(self, color : (int, int, int)):
         # Try to make a new connection.
         if random.random() > 0.005:
             return
