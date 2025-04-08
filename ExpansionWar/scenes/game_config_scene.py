@@ -1,12 +1,10 @@
-import pygame
 import logging
 
+import pygame
+
 import config
-from data.game_data import GameData
 from data.menu_data import MenuData
 from managers.save_manager import SaveManager
-from scenes.game_scene import GameScene
-from scenes.info_scene import InfoScene
 
 logger = logging.getLogger(__name__)
 
@@ -170,13 +168,7 @@ class GameConfigScene:
         self.data.save_json(GameConfigScene.SettingsFile)
 
         logger.info(f"Starting {self.data.mode} game")
-        if self.data.mode == "1player":
-            config.set_scene(GameScene(GameData.new_game(config.PLAYER_COLOR, None)))
-        elif self.data.mode == "2local":
-            config.set_scene(GameScene(GameData.new_game(config.PLAYER_COLOR, config.PLAYER2_COLOR)))
-        else:
-            config.set_scene(InfoScene("Not available yet\nsorry.", 2.5, GameConfigScene()))
-
+        config.gm.new_game(self.data.mode, self.ip_input["text"], self.port_input["text"])
 
     def validate_ip(self):
         octets = self.ip_input["text"].split('.')

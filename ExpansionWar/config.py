@@ -44,6 +44,7 @@ MONGO_COLLECTION = "planet"
 
 # Assets
 assets = None
+gm = None
 FONT_NAME = "Kenney Future Narrow.ttf"
 
 
