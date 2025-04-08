@@ -96,7 +96,7 @@ class GameLoadSelectScene:
     def handle_click(self, pos):
         for entry in self.file_entries:
             if entry["rect"].collidepoint(pos):
-                self.load_game(entry["filename"])
+                config.gm.load_game(entry["filename"])
                 return True
 
         if self.back_button_rect.collidepoint(pos):
@@ -105,22 +105,6 @@ class GameLoadSelectScene:
             return True
 
         return False
-
-    def load_game(self, selected_file):
-        try:
-            logger.info(f"Loading game from {selected_file}")
-            ext = os.path.splitext(selected_file)[1]
-            if ext == ".json":
-                config.set_scene(GameScene(GameData.load_json(selected_file)))
-            elif ext == ".xml":
-                config.set_scene(GameScene(GameData.load_xml(selected_file)))
-            elif ext == ".mongo":
-                config.set_scene(GameScene(GameData.load_from_mongo(os.path.splitext(selected_file)[0])))
-
-        except Exception as e:
-            logger.error(f"Load failed: {str(e)}")
-            from scenes.info_scene import InfoScene
-            config.set_scene(InfoScene(f"Load failed!\n{str(e)}", 3, self))
 
     def handle_keydown(self, event):
         return False

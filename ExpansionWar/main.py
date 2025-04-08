@@ -5,6 +5,7 @@ import pygame
 
 import config
 from managers.asset_manager import AssetManager
+from managers.game_manager import GameManager
 from managers.save_manager import SaveManager
 from scenes.menu_scene import MenuScene
 
@@ -60,4 +61,5 @@ if __name__ == "__main__":
     PygameLogManager.setup()
     SaveManager.setup()
     config.assets = AssetManager("assets.zip")
+    config.gm = GameManager()
     asyncio.run(main())

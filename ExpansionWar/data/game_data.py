@@ -1,7 +1,5 @@
 import json
 import logging
-import math
-import random
 import sys
 import xml.etree.ElementTree as ET
 
@@ -31,22 +29,6 @@ class GameData:
 
         self.current_turn_start : int = 0
         self.current_ticks : int = 0
-
-    @staticmethod
-    def new_game(p1color, p2color, level = 1, year = 2100, year_start = None):
-        if year_start is None:
-            year_start = year
-
-        data = GameData(p1color, p2color, year, year_start, level)
-        data.generate_planets()
-
-        return data
-
-    def next_level(self):
-        data = GameData(self.p1color, self.p2color, self.year, self.year_start, self.level + 1)
-        data.generate_planets()
-
-        return data
 
     def to_dict(self):
         return {
@@ -153,48 +135,6 @@ class GameData:
         data_dict['current_turn_color'] = parse_color(data_dict['current_turn_color'])
 
         return GameData.from_dict(data_dict)
-
-    def generate_planets(self):
-        enemy_ct = round(1.5 ** self.level - 0.5)
-        enemy_planets = round(1.5 ** self.level - 0.5)
-
-        logger.info(f"Generating planets: level: {self.level}, enemy_ct: {enemy_ct}, enemy_planets: {enemy_planets}")
-
-        for i in range(-2, enemy_ct):
-            if i == -1:
-                color = self.p1color
-            elif i == -2:
-                color = config.NO_OWNER_COLOR
-            elif self.p2color is not None and i == 0:
-                color = self.p2color
-            else:
-                color = (
-                    random.randint(50, 255),
-                    random.randint(50, 255),
-                    random.randint(50, 255)
-                )
-
-            for _ in range(0, enemy_planets):
-                while True:
-                    ok = True
-                    x = random.uniform(config.PLANET_RADIUS * 2, config.GAME_SCENE_WIDTH - config.PLANET_RADIUS * 2)
-                    y = random.uniform(config.PLANET_RADIUS * 2, config.GAME_SCENE_HEIGHT - config.PLANET_RADIUS * 2)
-
-                    candidate_center = (x + config.PLANET_RADIUS, y + config.PLANET_RADIUS)
-
-                    for planet in self.planets:
-                        dx = candidate_center[0] - planet.center_x
-                        dy = candidate_center[1] - planet.center_y
-                        distance = math.hypot(dx, dy)
-
-                        if distance < 2 * config.PLANET_RADIUS:
-                            ok = False
-                            break
-
-                    if ok:
-                        break
-
-                self.planets.append(Planet(x, y, color))
 
 def dict_to_xml(tag, d):
     elem = ET.Element(tag)
