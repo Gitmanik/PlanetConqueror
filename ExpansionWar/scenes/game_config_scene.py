@@ -213,9 +213,6 @@ class GameConfigScene:
                 if not self.validate_port():
                     logger.error("Invalid port number")
                     return
-            # No validation needed for Host mode, as the server is expected to run on the local machine
-
-        self.data.save_json(GameConfigScene.SettingsFile)
 
         logger.info(f"Starting {self.data.mode} game in {self.data.network_mode} mode")
         config.gm.new_game(self.data.mode, self.ip_input["text"], self.port_input["text"])
