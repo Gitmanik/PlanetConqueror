@@ -75,3 +75,9 @@ python3 main.py
     * MongoDB not supported in online build
 - [x] **Save and read game history (JSON)** (1 point)
 - [ ] **Read and playback saved game history with playback speed control** (1 point)
+
+### TCP/IP
+Unfortunately not supported on web build
+- [x] **Connection and sending messages** (2 points)
+- [x] **game update** (3 points)
+- [ ] (*1 point) use of IPv6 (provided that the full task is completed)
