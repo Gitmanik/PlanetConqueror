@@ -1,4 +1,5 @@
 import logging
+import sys
 
 import pygame
 
@@ -216,6 +217,12 @@ class GameConfigScene:
                     return
 
         mode = self.data.mode
+
+        if mode == "network" and sys.platform == "emscripten":
+            from scenes.menu_scene import MenuScene
+            from scenes.info_scene import InfoScene
+            config.set_scene(InfoScene("Multiplayer\nnot supported\non web, sorry.", 2.5, MenuScene()))
+            return
 
         if mode == "network":
             if self.data.network_mode == "client":
