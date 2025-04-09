@@ -259,7 +259,7 @@ class GameManager:
 
     def run_enemy_ai_continous(self, color : (int, int, int)):
         # Try to make a new connection.
-        if random.random() > 0.005:
+        if random.random() > 0.003:
             return
 
         enemy_planets = [planet for planet in self.data.planets if planet.color == color]
@@ -288,7 +288,7 @@ class GameManager:
         if enemy_ct is None:
             enemy_ct = round(1.5 ** self.data.level - 0.5)
         if enemy_planets is None:
-            enemy_planets = round(1.5 ** self.data.level - 0.5)
+            enemy_planets = round(1.2 ** self.data.level)
 
         logger.info(f"Generating planets: level: {self.data.level}, enemy_ct: {enemy_ct}, enemy_planets: {enemy_planets}")
 
