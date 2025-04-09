@@ -95,11 +95,9 @@ class GameManager:
 
     def tick(self):
         if self.game_mode == GameMode.HOST and self.conn is None:
-            logger.info("Waiting for connection")
             self.ticks = pygame.time.get_ticks()
             return
         elif self.game_mode == GameMode.CLIENT and self.data is None:
-            logger.info("Waiting for data")
             self.ticks = pygame.time.get_ticks()
             return
 
