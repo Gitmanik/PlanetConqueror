@@ -444,7 +444,7 @@ class GameManager:
                 logger.info(game_data_dict)
 
                 self.data.p1color = config.PLAYER2_COLOR
-                self.data.p2color = config.PLAYER1_COLOR
+                self.data.p2color = config.PLAYER_COLOR
 
                 logger.info("Received full game sync from host")
             elif action == "card_dropped":
