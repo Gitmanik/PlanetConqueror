@@ -153,8 +153,8 @@ class GameManager:
             if all_colors.pop() in (self.data.p1color, self.data.p2color):
                 logger.info("win")
                 self.data.level += 1
-                # config.set_scene(InfoScene("Mission\nSuccessful!", 2.5, GameScene(self.data.next_level())))
-                config.set_scene(InfoScene("Mission\nSuccessful!.", 2.5, MenuScene()))
+                from scenes.game_next_level_scene import NextLevelScene
+                config.set_scene(InfoScene("Mission\nSuccessful!", 2.5, NextLevelScene()))
             else:
                 logger.info("lose")
                 config.set_scene(InfoScene("Mission\nfailed.", 2.5, MenuScene()))
