@@ -56,7 +56,7 @@ class GameManager:
             self.generate_planets()
         elif self.game_mode == GameMode.HOST:
             self.data = GameData(config.PLAYER_COLOR, config.PLAYER2_COLOR, 2100, 2100, 1)
-            self.generate_planets()
+            self.generate_planets(1, 3)
             self.start_network_server(ip, int(port))
         elif self.game_mode == GameMode.CLIENT:
             self.connect_to_network_server(ip, int(port))
@@ -284,13 +284,16 @@ class GameManager:
         self.enemy_ai_done = True
 
 
-    def generate_planets(self):
-        enemy_ct = round(1.5 ** self.data.level - 0.5)
-        enemy_planets = round(1.5 ** self.data.level - 0.5)
+    def generate_planets(self, enemy_ct = None, enemy_planets = None):
+        if enemy_ct is None:
+            enemy_ct = round(1.5 ** self.data.level - 0.5)
+        if enemy_planets is None:
+            enemy_planets = round(1.5 ** self.data.level - 0.5)
 
         logger.info(f"Generating planets: level: {self.data.level}, enemy_ct: {enemy_ct}, enemy_planets: {enemy_planets}")
 
         for i in range(-2, enemy_ct):
+            logger.info(i)
             if i == -1:
                 color = self.data.p1color
             elif i == -2:
