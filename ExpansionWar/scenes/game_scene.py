@@ -100,13 +100,17 @@ class GameScene:
             if planet.is_clicked(self.planets_base_x, self.planets_base_y, pos):
                 logger.debug(f"Planet {planet} clicked")
                 if self.selected_planet is None:
-                    if self.manager.game_mode == GameMode.LOCAL_TWO_PLAYER:
+                    if self.manager.game_mode == GameMode.SINGLE_PLAYER:
+                        if planet.color != self.manager.data.p1color:
+                            logger.debug("SP: Enemy planet clicked")
+                            return True
+                    elif self.manager.game_mode == GameMode.LOCAL_TWO_PLAYER:
                         if planet.color not in (self.manager.data.p1color, self.manager.data.p2color) or self.manager.data.current_turn_color != planet.color:
-                            logger.debug("Enemy planet clicked")
+                            logger.debug("L2P: Enemy planet clicked")
                             return True
                     elif self.manager.game_mode in (GameMode.HOST, GameMode.CLIENT):
                         if planet.color != self.manager.data.p1color:
-                            logger.debug("Enemy player's planet clicked")
+                            logger.debug("MP: Enemy player's planet clicked")
                             return True
 
                     if planet.value < 1:
