@@ -333,7 +333,7 @@ class GameManager:
 
     def start_network_server(self, ip: str, port: int):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind((ip, port))
+        self.socket.bind(("0.0.0.0", port))
         self.socket.listen(1)
         logger.info(f"Server listening on {ip}:{port}")
 
