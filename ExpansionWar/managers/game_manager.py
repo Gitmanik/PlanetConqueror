@@ -236,9 +236,9 @@ class GameManager:
             self.enemy_ai_done = True
             return
 
-        # Try to use a card upgrade.
-        if random.random() < 0.9:
-            chosen = random.choice(enemy_planets)
+        # Prioritize upgrading planets with higher values
+        chosen = max(enemy_planets, key=lambda p: p.value, default=None)
+        if chosen:
             if chosen.value > config.SATELLITE_COST and chosen.satellite_upgrade < 6:
                 chosen.satellite_upgrade += 1
                 chosen.value -= config.SATELLITE_COST
@@ -251,32 +251,31 @@ class GameManager:
                     f"Enemy {self.data.current_turn_color} {chosen} upgraded Rocket, new upgrade: {chosen.rocket_upgrade}")
         self.enemy_ai_done = True
 
-    def run_enemy_ai_continous(self, color : (int, int, int)):
-        # Try to make a new connection.
-        if random.random() > 0.003:
+    def run_enemy_ai_continous(self, color: (int, int, int)):
+        # Try to make a new connection to weaker enemy or neutral planets
+        if random.random() > 0.005:
             return
 
         enemy_planets = [planet for planet in self.data.planets if planet.color == color]
         source = random.choice(enemy_planets)
         candidates = []
         for candidate in self.data.planets:
-            if candidate != source:
-                # Check if there is already a connection between source and candidate.
-                already_connected = False
-                for connection in self.data.connections:
-                    if (connection.planet == source and connection.other_planet == candidate) or \
-                            (connection.planet == candidate and connection.other_planet == source):
-                        already_connected = True
-                        break
+            if candidate != source and candidate.color != color:
+                # Check if there is already a connection between source and candidate
+                already_connected = any(
+                    (connection.planet == source and connection.other_planet == candidate) or
+                    (connection.planet == candidate and connection.other_planet == source)
+                    for connection in self.data.connections
+                )
                 if not already_connected:
                     candidates.append(candidate)
+
         if candidates:
-            target = random.choice(candidates)
-            self.data.connections.append(Connection(source, target))
-            logger.info(f"Enemy connection made between {source} and {target}")
-
-        self.enemy_ai_done = True
-
+            # Prioritize weaker planets (lower value)
+            target = min(candidates, key=lambda p: p.value, default=None)
+            if target:
+                self.data.connections.append(Connection(source, target))
+                logger.info(f"Enemy connection made between {source} and {target}")
 
     def generate_planets(self, enemy_ct = None, enemy_planets = None):
         if enemy_ct is None:
