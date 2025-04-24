@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import pygame
@@ -163,7 +164,7 @@ class GameScene:
                         return True
 
         if self.save_btn_rect.collidepoint(pos):
-            self.manager.data.save_json('save.json')
+            self.manager.data.save_json(datetime.datetime.now().strftime("%m-%d-%y %H_%M_%S") + ".json")
             return True
 
         return False
@@ -209,8 +210,3 @@ class GameScene:
             x = start_x + i * (card_width + spacing)
             rects.append(pygame.Rect(x, y, card_width, card_height))
         return rects
-
-    def handle_keydown(self, event):
-        if event.key == pygame.K_s:
-            self.manager.data.save_json('save.json')
-        return False
