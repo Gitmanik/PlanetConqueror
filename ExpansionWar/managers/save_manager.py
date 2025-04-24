@@ -63,7 +63,7 @@ class SaveManager:
             except:
                 files_data = {}
             if GameConfigScene.SettingsFile in files_data:
-                files_data.remove(GameConfigScene.SettingsFile)
+                files_data.pop(GameConfigScene.SettingsFile, None)
             return files_data.keys()
         else:
             files = os.listdir(config.SAVES_FOLDER)
