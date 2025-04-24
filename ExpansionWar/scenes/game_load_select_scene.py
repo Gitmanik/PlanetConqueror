@@ -34,12 +34,11 @@ class GameLoadSelectScene:
         self.file_entries = []
         files = SaveManager.list_files()
         for file in files:
-            if file.endswith((".json", ".xml")):
-                entry = {
-                    "filename": file,
-                    "rect": pygame.Rect(0, 0, 0, 0),
-                }
-                self.file_entries.append(entry)
+            entry = {
+                "filename": file,
+                "rect": pygame.Rect(0, 0, 0, 0),
+            }
+            self.file_entries.append(entry)
 
     def draw(self, surface):
         surface.blit(self.background, (0, 0))

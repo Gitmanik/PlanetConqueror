@@ -164,7 +164,6 @@ class GameScene:
 
         if self.save_btn_rect.collidepoint(pos):
             self.manager.data.save_json('save.json')
-            self.manager.data.save_xml('save.xml')
             return True
 
         return False
@@ -214,5 +213,4 @@ class GameScene:
     def handle_keydown(self, event):
         if event.key == pygame.K_s:
             self.manager.data.save_json('save.json')
-            self.manager.data.save_xml('save.xml')
         return False

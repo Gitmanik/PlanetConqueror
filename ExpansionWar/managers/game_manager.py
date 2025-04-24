@@ -78,11 +78,7 @@ class GameManager:
         from scenes.game_scene import GameScene
         try:
             logger.info(f"Loading game from {selected_file}")
-            ext = os.path.splitext(selected_file)[1]
-            if ext == ".json":
-                self.data = GameData.load_json(selected_file)
-            elif ext == ".xml":
-                self.data = GameData.load_xml(selected_file)
+            self.data = GameData.load_json(selected_file)
 
             config.set_scene(GameScene(self))
 
