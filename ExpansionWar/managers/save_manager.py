@@ -54,6 +54,7 @@ class SaveManager:
 
     @staticmethod
     def list_files():
+        from scenes.game_config_scene import GameConfigScene
         if sys.platform == "emscripten":
             from platform import window
             stored = window.localStorage.getItem(config.LOCAL_STORAGE)
@@ -61,8 +62,11 @@ class SaveManager:
                 files_data = json.loads(stored) if stored else {}
             except:
                 files_data = {}
+            if GameConfigScene.SettingsFile in files_data:
+                files_data.remove(GameConfigScene.SettingsFile)
             return files_data.keys()
         else:
             files = os.listdir(config.SAVES_FOLDER)
-
+            if GameConfigScene.SettingsFile in files:
+                files.remove(GameConfigScene.SettingsFile)
             return files

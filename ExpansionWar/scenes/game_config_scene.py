@@ -10,7 +10,7 @@ from managers.save_manager import SaveManager
 
 logger = logging.getLogger(__name__)
 class GameConfigScene:
-    SettingsFile = "menu_data.menujson"
+    SettingsFile = "menu.json"
 
     def __init__(self):
         if GameConfigScene.SettingsFile not in SaveManager.list_files():
@@ -157,7 +157,6 @@ class GameConfigScene:
                 self.data.mode = btn["value"]
                 if self.data.mode != "network":
                     self.data.network_mode = None  # Reset network mode when not in network mode
-                self.data.save_json(GameConfigScene.SettingsFile)
                 return True
 
         # Network mode selection (Client/Host)
@@ -165,17 +164,16 @@ class GameConfigScene:
             for btn in self.network_buttons:
                 if btn["rect"].collidepoint(pos):
                     self.data.network_mode = btn["value"]
-                    self.data.save_json(GameConfigScene.SettingsFile)
                     return True
 
         # Network inputs
         if self.data.network_mode == "client":
             self.ip_input["active"] = self.ip_input["rect"].collidepoint(pos)
             self.port_input["active"] = self.port_input["rect"].collidepoint(pos)
-            self.data.save_json(GameConfigScene.SettingsFile)
 
         # Start button
         if self.start_btn.collidepoint(pos):
+            self.data.save_json(GameConfigScene.SettingsFile)
             self.start_game()
             return True
 
