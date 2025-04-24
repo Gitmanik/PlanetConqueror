@@ -3,9 +3,6 @@ import logging
 import os
 import sys
 
-if sys.platform != "emscripten":
-    import pymongo
-
 import config
 
 logger = logging.getLogger(__name__)
@@ -57,6 +54,7 @@ class SaveManager:
 
     @staticmethod
     def list_files():
+        from scenes.game_config_scene import GameConfigScene
         if sys.platform == "emscripten":
             from platform import window
             stored = window.localStorage.getItem(config.LOCAL_STORAGE)
@@ -64,20 +62,11 @@ class SaveManager:
                 files_data = json.loads(stored) if stored else {}
             except:
                 files_data = {}
+            if GameConfigScene.SettingsFile in files_data:
+                files_data.remove(GameConfigScene.SettingsFile)
             return files_data.keys()
         else:
             files = os.listdir(config.SAVES_FOLDER)
-
-            client = pymongo.MongoClient(config.MONGO_CONNECTION_URI, serverSelectionTimeoutMS=100)
-            try:
-                client.admin.command('ping')
-                db = client[config.MONGO_DB]
-                collection = db[config.MONGO_COLLECTION]
-                data = collection.find()
-                for entry in data:
-                    files.append(entry["mongo_name"] + ".mongo")
-                client.close()
-            except:
-                logger.error("MongoDB not available")
-
+            if GameConfigScene.SettingsFile in files:
+                files.remove(GameConfigScene.SettingsFile)
             return files

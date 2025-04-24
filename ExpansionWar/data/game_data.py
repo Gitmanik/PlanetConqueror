@@ -1,15 +1,8 @@
 import json
 import logging
-import sys
-import xml.etree.ElementTree as ET
 
 from managers.save_manager import SaveManager
 
-if sys.platform != "emscripten":
-    import pymongo
-    from pymongo.errors import ConnectionFailure
-
-import config
 from entities.connection import Connection
 from entities.planet import Planet
 
@@ -68,102 +61,3 @@ class GameData:
     def load_json(filename):
         str = SaveManager.read_file(filename)
         return GameData.from_dict(json.loads(str))
-
-    # ── MongoDB Support ──
-    def save_to_mongo(self, filename):
-        if sys.platform == "emscripten":
-            logger.warning("WASM build does not support saving to MongoDB")
-            return
-        logger.info(f"Saving GameData to MongoDB: {filename}")
-        client = pymongo.MongoClient(config.MONGO_CONNECTION_URI, serverSelectionTimeoutMS=100)
-        try:
-            db = client[config.MONGO_DB]
-            collection = db[config.MONGO_COLLECTION]
-            data = self.to_dict()
-            data["mongo_name"] = filename
-            collection.insert_one(data)
-            client.close()
-        except ConnectionFailure:
-            logger.error("Server not available")
-
-    @classmethod
-    def load_from_mongo(cls, filename):
-        if sys.platform == "emscripten":
-            logger.warning("WASM build does not support loading from MongoDB")
-            return None
-        logger.info(f"Loading GameData from MongoDB: {filename}")
-        client = pymongo.MongoClient(config.MONGO_CONNECTION_URI, serverSelectionTimeoutMS=100)
-        try:
-            db = client[config.MONGO_DB]
-            collection = db[config.MONGO_COLLECTION]
-            data = collection.find_one({"mongo_name": filename})
-            client.close()
-            if data is not None:
-                return GameData.from_dict(data)
-            else:
-                return None
-        except ConnectionFailure:
-            logger.error("Server not available")
-            return None
-
-    # ── XML Support ──
-    def to_xml(self):
-        data_dict = self.to_dict()
-        root = dict_to_xml("GameData", data_dict)
-        return root
-
-    def save_xml(self, filename):
-        root = self.to_xml()
-        xml_str = ET.tostring(root, encoding='utf-8', method='xml').decode('utf-8')
-        SaveManager.save_file(filename, xml_str)
-
-    @staticmethod
-    def load_xml(filename):
-        def parse_color(val):
-            if val is None or val == "None":
-                return None
-            val = val.strip("()")
-            return tuple(int(float(x.strip())) for x in val.split(','))
-
-        str = SaveManager.read_file(filename)
-        root = ET.fromstring(str)
-
-        data_dict = xml_to_dict(root)
-
-        data_dict['p1color'] = parse_color(data_dict['p1color'])
-        data_dict['p2color'] = parse_color(data_dict['p2color'])
-        data_dict['current_turn_color'] = parse_color(data_dict['current_turn_color'])
-
-        return GameData.from_dict(data_dict)
-
-def dict_to_xml(tag, d):
-    elem = ET.Element(tag)
-    for key, val in d.items():
-        child = ET.SubElement(elem, key)
-        if isinstance(val, dict):
-            child.append(dict_to_xml(key, val))
-        elif isinstance(val, list):
-            for item in val:
-                if isinstance(item, dict):
-                    item_elem = dict_to_xml("item", item)
-                    child.append(item_elem)
-                else:
-                    item_elem = ET.Element("item")
-                    item_elem.text = str(item)
-                    child.append(item_elem)
-        else:
-            child.text = str(val)
-    return elem
-
-def xml_to_dict(elem):
-    d = {}
-    for child in elem:
-        if list(child):
-            # If all subelements are named "item", treat as a list.
-            if all(sub.tag == "item" for sub in child):
-                d[child.tag] = [xml_to_dict(sub) if list(sub) else sub.text for sub in child]
-            else:
-                d[child.tag] = xml_to_dict(child)
-        else:
-            d[child.tag] = child.text
-    return d

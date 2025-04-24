@@ -18,7 +18,6 @@ GAME_SCENE_WIDTH = SCREEN_WIDTH
 GAME_SCENE_HEIGHT = SCREEN_HEIGHT - GAME_INFO_BAR_HEIGHT - CARDS_BAR_HEIGHT
 
 
-
 # Colors
 PLAYER_COLOR = (0, 0x78, 0x48)
 PLAYER2_COLOR = (0x78, 0, 0)
@@ -34,13 +33,6 @@ SATELLITE_COST = 10
 #Save system
 SAVES_FOLDER = "saves"
 LOCAL_STORAGE = "saves"
-
-
-#MongoDB
-MONGO_CONNECTION_URI = "mongodb://localhost:27017/"
-MONGO_DB = "test"
-MONGO_COLLECTION = "planet"
-
 
 # Assets
 assets = None

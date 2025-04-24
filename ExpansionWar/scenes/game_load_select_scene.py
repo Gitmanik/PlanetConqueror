@@ -34,12 +34,11 @@ class GameLoadSelectScene:
         self.file_entries = []
         files = SaveManager.list_files()
         for file in files:
-            if file.endswith((".json", ".xml", ".mongo")):
-                entry = {
-                    "filename": file,
-                    "rect": pygame.Rect(0, 0, 0, 0),
-                }
-                self.file_entries.append(entry)
+            entry = {
+                "filename": file,
+                "rect": pygame.Rect(0, 0, 0, 0),
+            }
+            self.file_entries.append(entry)
 
     def draw(self, surface):
         surface.blit(self.background, (0, 0))
@@ -61,10 +60,14 @@ class GameLoadSelectScene:
         # Draw file list
         for i in range(min(visible_entries, len(self.file_entries))):
             entry = self.file_entries[i]
+
+            # Centered text
+            text_surf = self.file_font.render(entry["filename"], True, (255, 255, 255))
+
             entry_rect = pygame.Rect(
                 0,
                 start_y + i * (entry_height + spacing),
-                500,
+                max(500, text_surf.width),
                 entry_height
             )
             entry_rect.centerx = config.SCREEN_WIDTH // 2
@@ -77,8 +80,6 @@ class GameLoadSelectScene:
             pygame.draw.rect(surface, bg_color, entry_rect)
             pygame.draw.rect(surface, border_color, entry_rect, 3)
 
-            # Centered text
-            text_surf = self.file_font.render(entry["filename"], True, (255, 255, 255))
             text_rect = text_surf.get_rect(center=entry_rect.center)
             surface.blit(text_surf, text_rect)
 
