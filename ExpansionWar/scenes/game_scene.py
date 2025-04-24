@@ -165,7 +165,6 @@ class GameScene:
         if self.save_btn_rect.collidepoint(pos):
             self.manager.data.save_json('save.json')
             self.manager.data.save_xml('save.xml')
-            self.manager.data.save_to_mongo("save")
             return True
 
         return False
@@ -216,5 +215,4 @@ class GameScene:
         if event.key == pygame.K_s:
             self.manager.data.save_json('save.json')
             self.manager.data.save_xml('save.xml')
-            self.manager.data.save_to_mongo("save")
         return False

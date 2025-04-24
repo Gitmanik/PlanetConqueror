@@ -36,12 +36,6 @@ SAVES_FOLDER = "saves"
 LOCAL_STORAGE = "saves"
 
 
-#MongoDB
-MONGO_CONNECTION_URI = "mongodb://localhost:27017/"
-MONGO_DB = "test"
-MONGO_COLLECTION = "planet"
-
-
 # Assets
 assets = None
 gm = None

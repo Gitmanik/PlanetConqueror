@@ -5,10 +5,6 @@ import xml.etree.ElementTree as ET
 
 from managers.save_manager import SaveManager
 
-if sys.platform != "emscripten":
-    import pymongo
-    from pymongo.errors import ConnectionFailure
-
 import config
 from entities.connection import Connection
 from entities.planet import Planet
@@ -68,43 +64,6 @@ class GameData:
     def load_json(filename):
         str = SaveManager.read_file(filename)
         return GameData.from_dict(json.loads(str))
-
-    # ── MongoDB Support ──
-    def save_to_mongo(self, filename):
-        if sys.platform == "emscripten":
-            logger.warning("WASM build does not support saving to MongoDB")
-            return
-        logger.info(f"Saving GameData to MongoDB: {filename}")
-        client = pymongo.MongoClient(config.MONGO_CONNECTION_URI, serverSelectionTimeoutMS=100)
-        try:
-            db = client[config.MONGO_DB]
-            collection = db[config.MONGO_COLLECTION]
-            data = self.to_dict()
-            data["mongo_name"] = filename
-            collection.insert_one(data)
-            client.close()
-        except ConnectionFailure:
-            logger.error("Server not available")
-
-    @classmethod
-    def load_from_mongo(cls, filename):
-        if sys.platform == "emscripten":
-            logger.warning("WASM build does not support loading from MongoDB")
-            return None
-        logger.info(f"Loading GameData from MongoDB: {filename}")
-        client = pymongo.MongoClient(config.MONGO_CONNECTION_URI, serverSelectionTimeoutMS=100)
-        try:
-            db = client[config.MONGO_DB]
-            collection = db[config.MONGO_COLLECTION]
-            data = collection.find_one({"mongo_name": filename})
-            client.close()
-            if data is not None:
-                return GameData.from_dict(data)
-            else:
-                return None
-        except ConnectionFailure:
-            logger.error("Server not available")
-            return None
 
     # ── XML Support ──
     def to_xml(self):

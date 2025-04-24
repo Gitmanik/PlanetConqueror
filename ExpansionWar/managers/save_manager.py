@@ -3,9 +3,6 @@ import logging
 import os
 import sys
 
-if sys.platform != "emscripten":
-    import pymongo
-
 import config
 
 logger = logging.getLogger(__name__)
@@ -67,17 +64,5 @@ class SaveManager:
             return files_data.keys()
         else:
             files = os.listdir(config.SAVES_FOLDER)
-
-            client = pymongo.MongoClient(config.MONGO_CONNECTION_URI, serverSelectionTimeoutMS=100)
-            try:
-                client.admin.command('ping')
-                db = client[config.MONGO_DB]
-                collection = db[config.MONGO_COLLECTION]
-                data = collection.find()
-                for entry in data:
-                    files.append(entry["mongo_name"] + ".mongo")
-                client.close()
-            except:
-                logger.error("MongoDB not available")
 
             return files

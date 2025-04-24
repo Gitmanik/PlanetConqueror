@@ -34,7 +34,7 @@ class GameLoadSelectScene:
         self.file_entries = []
         files = SaveManager.list_files()
         for file in files:
-            if file.endswith((".json", ".xml", ".mongo")):
+            if file.endswith((".json", ".xml")):
                 entry = {
                     "filename": file,
                     "rect": pygame.Rect(0, 0, 0, 0),
