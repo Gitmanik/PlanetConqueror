@@ -1,0 +1,10 @@
+[project]
+name = "Planet-Conqueror"
+version = "0.1.0"
+description = "Real-time expansion war game with turns"
+requires-python = ">=3.11"
+dependencies = [
+    "pygame-ce>=2.5.3",
+    "pygbag==0.9.2",
+    "pymongo==4.12.0",
+]
