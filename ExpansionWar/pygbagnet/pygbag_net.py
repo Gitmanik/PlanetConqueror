@@ -7,8 +7,13 @@ import json
 import base64
 
 
-import io, socket
+import io
 import traceback
+
+if sys.platform != "emscripten":
+    import websockets
+else:
+    import socket
 
 
 # TODO: use websockets module when on desktop to connect to service directly.
@@ -19,93 +24,84 @@ import traceback
 
 
 async def aio_sock_open(sock, host, port):
-    # print(f"20:aio_sock_open({host=},{port=}) {aio.cross.simulator=}")
-    # if aio.cross.simulator:
-    #     host, trail = host.strip(":/").split("/", 1)
-    #     port = int(trail.rsplit("/", 1)[-1])
-    #     print(f"21:aio_sock_open({host=},{port=})")
-
-    while True:
+    if sys.platform != "emscripten":
+        # Use websockets for non-emscripten platforms
         try:
-            sock.connect(
-                (
-                    host,
-                    port,
-                )
-            )
-
-        except BlockingIOError:
-            await aio.sleep(0)
-        except OSError as e:
-            # 30 emsdk, 106 linux means connected.
-            if e.errno in (30, 106):
-                return sock
+            # Convert host:port to websocket URL
+            ws_url = f"ws://{host}:{port}"
+            websocket = await websockets.connect(ws_url)
+            # Wrap websocket in a socket-like interface
+            sock._websocket = websocket
+            return sock
+        except Exception as e:
             traceback.print_exception(e)
+            return None
+    else:
+        # Original emscripten implementation
+        while True:
+            try:
+                sock.connect((host, port))
+            except BlockingIOError:
+                await aio.sleep(0)
+            except OSError as e:
+                if e.errno in (30, 106):
+                    return sock
+                traceback.print_exception(e)
+
 
 
 class aio_sock:
     def __init__(self, url, mode, tmout):
         host, port = url.rsplit(":", 1)
         self.port = int(port)
-        # we don't want simulator to fool us
-        # if __WASM__ and __import__("platform").is_browser:
-        #     if not url.startswith("://"):
-        #         pdb(f"switching to {self.port}+20000 as websocket")
-        #         self.port += 20000
-        #     else:
         _, host = host.split("://", 1)
-
         self.host = host
-
+        self.socket = socket.socket() if sys.platform == "emscripten" else type('WebSocketWrapper', (), {
+            'send': lambda self, data: self._websocket.send(data if isinstance(data, str) else data.decode()),
+            'recv': lambda self, size: self._websocket.recv(),
+            'close': lambda: self._websocket.close(),
+            '_websocket': None,
+        })()
         print(f"host={host} port={port} mode={mode} tmout={tmout}")
 
-        self.socket = socket.socket()
-        # self.sock.setblocking(0)
-
-    # overload socket directly ?
-
     def fileno(self):
-        return self.sock.fileno()
+        return self.socket.fileno() if sys.platform == "emscripten" else None
 
-    def send(self, *argv, **kw):
-        self.sock.send(*argv, **kw)
+    async def send(self, data):
+        if sys.platform != "emscripten":
+            await self.socket._websocket.send(data if isinstance(data, str) else data.decode())
+        else:
+            self.socket.send(data.encode() if isinstance(data, str) else data)
 
-    def recv(self, *argv):
-        return self.sock.recv(*argv)
-
-    # ============== specific ===========================
+    async def recv(self, size=-1):
+        if sys.platform != "emscripten":
+            return await self.socket._websocket.recv()
+        return self.socket.recv(size)
 
     async def __aenter__(self):
-        # use async
         print("64: aio_sock_open", self.host, self.port)
         await aio_sock_open(self.socket, self.host, self.port)
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
         aio.protect.append(self)
-        aio.defer(self.socket.close, (), {})
+        if sys.platform != "emscripten":
+            await self.socket._websocket.close()
+        else:
+            aio.defer(self.socket.close, (), {})
         del self.port, self.host, self.socket
 
-    def read(self, size=-1):
-        return self.recv(0)
+    async def read(self, size=-1):
+        return await self.recv(size)
 
-    def write(self, data):
-        if isinstance(data, str):
-            return self.socket.send(data.encode())
-        return self.socket.send(data)
+    async def write(self, data):
+        await self.send(data)
 
     def print(self, *argv, **kw):
         kw["file"] = io.StringIO(newline="\r\n")
         print(*argv, **kw)
-        self.write(kw["file"].getvalue())
+        asyncio.create_task(self.write(kw["file"].getvalue()))
 
-    def __enter__(url, mode, tmout):
-        # use softrt (wapy)
-        return aio.await_for(self.__aenter__())
-
-    def __exit__(self, exc_type, exc, tb):
-        # self.socket.close()
-        pass
 
 
 # TODO: get host url and lobby name from a json config on CDN
@@ -193,10 +189,10 @@ class Node:
             self.aiosock = sock
             self.alarm()
 
-            while not aio.exit:
+            while True:
                 rr, rw, re = select.select([sock.socket], [], [], 0)
                 if rr or rw or re:
-                    while not aio.exit and self.aiosock:
+                    while self.aiosock:
                         try:
                             # emscripten does not honor PEEK
                             # peek = sock.socket.recv(1, socket.MSG_PEEK |socket.MSG_DONTWAIT)
