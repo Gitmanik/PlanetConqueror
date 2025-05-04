@@ -10,10 +10,7 @@ import base64
 import io
 import traceback
 
-if sys.platform != "emscripten":
-    import websockets
-else:
-    import socket
+import socket
 
 
 # TODO: use websockets module when on desktop to connect to service directly.
@@ -22,22 +19,42 @@ else:
 # a mini irc included with pygbag python module that will capture all traffic
 # for local testing purpose.
 
+class WebsocketWrapper:
+    def __init__(self):
+        import websockets
+        self._websocket : websockets.ClientConnection = None
+        self.recv_buffer = b''
+
+    async def connect(self, host, port):
+        import websockets
+        ws_url = f"ws://{host}:{port}"
+        self._websocket = await websockets.connect(ws_url)
+
+    async def send(self, data):
+        await self._websocket.send(data)
+
+    async def close(self):
+        await self._websocket.close()
+
+    def recv(self, size, t):
+        ret = self.recv_buffer[0].to_bytes()
+        self.recv_buffer = self.recv_buffer[1:]
+        return ret
+
+    async def select(self):
+        if len(self.recv_buffer) == 0:
+            self.recv_buffer += await self._websocket.recv()
+        return len(self.recv_buffer), None, None
 
 async def aio_sock_open(sock, host, port):
     if sys.platform != "emscripten":
-        # Use websockets for non-emscripten platforms
         try:
-            # Convert host:port to websocket URL
-            ws_url = f"ws://{host}:{port}"
-            websocket = await websockets.connect(ws_url)
-            # Wrap websocket in a socket-like interface
-            sock._websocket = websocket
+            await sock.connect(host, port)
             return sock
         except Exception as e:
             traceback.print_exception(e)
             return None
     else:
-        # Original emscripten implementation
         while True:
             try:
                 sock.connect((host, port))
@@ -56,27 +73,23 @@ class aio_sock:
         self.port = int(port)
         _, host = host.split("://", 1)
         self.host = host
-        self.socket = socket.socket() if sys.platform == "emscripten" else type('WebSocketWrapper', (), {
-            'send': lambda self, data: self._websocket.send(data if isinstance(data, str) else data.decode()),
-            'recv': lambda self, size: self._websocket.recv(),
-            'close': lambda: self._websocket.close(),
-            '_websocket': None,
-        })()
+
+        self.socket = socket.socket() if sys.platform == "emscripten" else WebsocketWrapper()
+
         print(f"host={host} port={port} mode={mode} tmout={tmout}")
 
     def fileno(self):
         return self.socket.fileno() if sys.platform == "emscripten" else None
 
     async def send(self, data):
+        data = data.encode('utf-8') if isinstance(data, str) else data
         if sys.platform != "emscripten":
-            await self.socket._websocket.send(data if isinstance(data, str) else data.decode())
+            await self.socket.send(data)
         else:
-            self.socket.send(data.encode() if isinstance(data, str) else data)
+            self.socket.send(data)
 
-    async def recv(self, size=-1):
-        if sys.platform != "emscripten":
-            return await self.socket._websocket.recv()
-        return self.socket.recv(size)
+    async def recv(self, size=-1, t = None):
+        return self.socket.recv(size, t)
 
     async def __aenter__(self):
         print("64: aio_sock_open", self.host, self.port)
@@ -84,11 +97,10 @@ class aio_sock:
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
-        aio.protect.append(self)
         if sys.platform != "emscripten":
-            await self.socket._websocket.close()
-        else:
-            aio.defer(self.socket.close, (), {})
+            await self.socket.close()
+        # else:
+            # aio(self.socket.close, (), {})
         del self.port, self.host, self.socket
 
     async def read(self, size=-1):
@@ -190,13 +202,16 @@ class Node:
             self.alarm()
 
             while True:
-                rr, rw, re = select.select([sock.socket], [], [], 0)
+                if sys.platform == 'emscripten':
+                    rr, rw, re = select.select([sock.socket], [], [], 0)
+                else:
+                    rr, rw, re = await sock.socket.select()
                 if rr or rw or re:
                     while self.aiosock:
                         try:
                             # emscripten does not honor PEEK
                             # peek = sock.socket.recv(1, socket.MSG_PEEK |socket.MSG_DONTWAIT)
-                            one = sock.socket.recv(1, socket.MSG_DONTWAIT)
+                            one = await sock.recv(1, socket.MSG_DONTWAIT)
                             if one:
                                 self.peek.append(one)
                                 # full line let's send that to event processing
