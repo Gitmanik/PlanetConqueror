@@ -8,6 +8,7 @@ import config
 from managers import pygbagnet_manager
 from managers.asset_manager import AssetManager
 from managers.game_manager import GameManager
+from managers.pygbagnet_manager import PygbagnetManager
 from managers.save_manager import SaveManager
 from pygbagnet import pygbag_net
 from scenes.menu_scene import MenuScene
@@ -25,7 +26,7 @@ clock = pygame.time.Clock()
 
 async def main():
 
-    builtins.node = pygbag_net.Node(gid=71830, groupname="PlanetConqueror")
+    config.pgnm = PygbagnetManager(pygbag_net.Node(gid=71830, groupname="PlanetConqueror"))
 
     background = pygame.image.load(config.assets["Background.png"])
     background = pygame.transform.scale(background, [config.SCREEN_WIDTH, config.SCREEN_HEIGHT])
@@ -36,7 +37,7 @@ async def main():
     while running:
         screen.blit(background, (0, 0), (0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
 
-        await pygbagnet_manager.tick()
+        await config.pgnm.tick()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
