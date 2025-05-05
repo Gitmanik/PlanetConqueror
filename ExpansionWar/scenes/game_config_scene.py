@@ -4,21 +4,19 @@ import sys
 import pygame
 
 import config
-from data.menu_data import MenuData
 from managers.game_manager import GameMode
-from managers.save_manager import SaveManager
 
 logger = logging.getLogger(__name__)
 class GameConfigScene:
     SettingsFile = "menu.json"
 
     def __init__(self):
-        if GameConfigScene.SettingsFile not in SaveManager.list_files():
-            self.data = MenuData("1player", "127.0.0.1", "7777", "host")  # Default to client mode
-        else:
-            self.data = MenuData.load_json(GameConfigScene.SettingsFile)
-
         self.active_input = None
+
+        self.ip = "localhost"
+        self.port = "5000"
+        self.mode = "1player"
+        self.network_mode = "client"
 
         # Main surface setup
         self.background = pygame.Surface((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
@@ -70,7 +68,7 @@ class GameConfigScene:
         input_width = int(config.SCREEN_WIDTH * 0.8)
         self.ip_input = {
             "rect": pygame.Rect(0, 150 + (70 + 20) * 4 + 100, input_width, 70),
-            "text": self.data.ip,
+            "text": self.ip,
             "active": False,
             "hint": "IP Address"
         }
@@ -78,7 +76,7 @@ class GameConfigScene:
 
         self.port_input = {
             "rect": pygame.Rect(0, 150 + (70 + 20) * 4 + 100 + 90, 200, 70),
-            "text": self.data.port,
+            "text": self.port,
             "active": False,
             "hint": "Port"
         }
@@ -101,7 +99,7 @@ class GameConfigScene:
 
         # Mode buttons
         for btn in self.mode_buttons:
-            is_selected = btn["value"] == self.data.mode
+            is_selected = btn["value"] == self.mode
             bg_color = (0, 150, 0) if is_selected else (50, 50, 50)
             border_color = (0, 200, 0) if is_selected else (100, 100, 100)
 
@@ -114,9 +112,9 @@ class GameConfigScene:
             surface.blit(label_surf, label_rect)
 
         # Network buttons (Client / Host)
-        if self.data.mode == "network":
+        if self.mode == "network":
             for btn in self.network_buttons:
-                is_selected = btn["value"] == self.data.network_mode
+                is_selected = btn["value"] == self.network_mode
                 bg_color = (0, 150, 0) if is_selected else (50, 50, 50)
                 border_color = (0, 200, 0) if is_selected else (100, 100, 100)
 
@@ -129,7 +127,7 @@ class GameConfigScene:
                 surface.blit(label_surf, label_rect)
 
             # Show IP and Port input fields only if "Client" is selected
-            if self.data.network_mode == "client":
+            if self.network_mode == "client":
                 self.draw_input(surface, self.ip_input, (0, 255, 0) if self.validate_ip() else (255, 0, 0))
                 self.draw_input(surface, self.port_input, (0, 255, 0) if self.validate_port() else (255, 0, 0))
 
@@ -154,33 +152,32 @@ class GameConfigScene:
 
         for btn in self.mode_buttons:
             if btn["rect"].collidepoint(pos):
-                self.data.mode = btn["value"]
-                if self.data.mode != "network":
-                    self.data.network_mode = None  # Reset network mode when not in network mode
+                self.mode = btn["value"]
+                if self.mode != "network":
+                    self.network_mode = None  # Reset network mode when not in network mode
                 return True
 
         # Network mode selection (Client/Host)
-        if self.data.mode == "network":
+        if self.mode == "network":
             for btn in self.network_buttons:
                 if btn["rect"].collidepoint(pos):
-                    self.data.network_mode = btn["value"]
+                    self.network_mode = btn["value"]
                     return True
 
         # Network inputs
-        if self.data.network_mode == "client":
+        if self.network_mode == "client":
             self.ip_input["active"] = self.ip_input["rect"].collidepoint(pos)
             self.port_input["active"] = self.port_input["rect"].collidepoint(pos)
 
         # Start button
         if self.start_btn.collidepoint(pos):
-            self.data.save_json(GameConfigScene.SettingsFile)
             self.start_game()
             return True
 
         return False
 
     def handle_keydown(self, event):
-        if self.data.network_mode == "client":
+        if self.network_mode == "client":
             current_input = None
             if self.ip_input["active"]:
                 current_input = self.ip_input
@@ -198,15 +195,14 @@ class GameConfigScene:
                         return
 
                     current_input["text"] += char
-                    self.data.ip = self.ip_input["text"]
-                    self.data.port = self.port_input["text"]
-                    self.data.save_json(GameConfigScene.SettingsFile)
+                    self.ip = self.ip_input["text"]
+                    self.port = self.port_input["text"]
                 return True
         return False
 
     def start_game(self):
-        if self.data.mode == "network":
-            if self.data.network_mode == "client":
+        if self.mode == "network":
+            if self.network_mode == "client":
                 if not self.validate_ip():
                     logger.error("Invalid IP address")
                     return
@@ -214,7 +210,7 @@ class GameConfigScene:
                     logger.error("Invalid port number")
                     return
 
-        mode = self.data.mode
+        mode = self.mode
 
         if mode == "network" and sys.platform == "emscripten":
             from scenes.menu_scene import MenuScene
@@ -223,7 +219,7 @@ class GameConfigScene:
             return
 
         if mode == "network":
-            if self.data.network_mode == "client":
+            if self.network_mode == "client":
                 mode = "client"
             else:
                 mode = "host"
@@ -238,7 +234,7 @@ class GameConfigScene:
             case "2local":
                 mode = GameMode.LOCAL_TWO_PLAYER
 
-        logger.info(f"Starting {mode} game in {self.data.mode} mode")
+        logger.info(f"Starting {mode} game in {self.mode} mode")
         config.gm.new_game(mode, self.ip_input["text"], self.port_input["text"])
 
     def validate_ip(self):
