@@ -12,13 +12,6 @@ import traceback
 
 import socket
 
-
-# TODO: use websockets module when on desktop to connect to service directly.
-
-# for now the goal is to connect directly without more dependency to
-# a mini irc included with pygbag python module that will capture all traffic
-# for local testing purpose.
-
 class WebsocketWrapper:
     def __init__(self):
         import websockets
@@ -92,34 +85,18 @@ class aio_sock:
         return self.socket.recv(size, t)
 
     async def __aenter__(self):
-        print("64: aio_sock_open", self.host, self.port)
         await aio_sock_open(self.socket, self.host, self.port)
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
         if sys.platform != "emscripten":
             await self.socket.close()
-        # else:
-            # aio(self.socket.close, (), {})
         del self.port, self.host, self.socket
-
-    async def read(self, size=-1):
-        return await self.recv(size)
-
-    async def write(self, data):
-        await self.send(data)
 
     def print(self, *argv, **kw):
         kw["file"] = io.StringIO(newline="\r\n")
         print(*argv, **kw)
-        asyncio.create_task(self.write(kw["file"].getvalue()))
-
-
-
-# TODO: get host url and lobby name from a json config on CDN
-# to allow redirect to new server without breaking existing games.
-
-# from enum import auto ?
+        asyncio.create_task(self.send(kw["file"].getvalue()))
 
 
 class Node:
@@ -209,12 +186,9 @@ class Node:
                 if rr or rw or re:
                     while self.aiosock:
                         try:
-                            # emscripten does not honor PEEK
-                            # peek = sock.socket.recv(1, socket.MSG_PEEK |socket.MSG_DONTWAIT)
                             one = await sock.recv(1, socket.MSG_DONTWAIT)
                             if one:
                                 self.peek.append(one)
-                                # full line let's send that to event processing
                                 if one == b"\n":
                                     self.rxq.append(b"".join(self.peek))
                                     self.peek.clear()
