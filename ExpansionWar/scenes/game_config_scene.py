@@ -1,24 +1,19 @@
 import logging
-import sys
 
 import pygame
 
 import config
-from data.menu_data import MenuData
 from managers.game_manager import GameMode
-from managers.save_manager import SaveManager
 
 logger = logging.getLogger(__name__)
 class GameConfigScene:
     SettingsFile = "menu.json"
 
     def __init__(self):
-        if GameConfigScene.SettingsFile not in SaveManager.list_files():
-            self.data = MenuData("1player", "127.0.0.1", "7777", "host")  # Default to client mode
-        else:
-            self.data = MenuData.load_json(GameConfigScene.SettingsFile)
-
         self.active_input = None
+
+        self.mode = "1player"
+        self.new_lobby_text = "New lobby"
 
         # Main surface setup
         self.background = pygame.Surface((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
@@ -50,39 +45,8 @@ class GameConfigScene:
         for btn in self.mode_buttons:
             btn["rect"].centerx = config.SCREEN_WIDTH // 2
 
-        # Network mode buttons (Client / Host)
-        self.network_buttons = [
-            {
-                "rect": pygame.Rect(0, 150 + (70 + 20) * 3, 350, 70),
-                "label": "Client",
-                "value": "client",
-            },
-            {
-                "rect": pygame.Rect(0, 150 + (70 + 20) * 4, 350, 70),
-                "label": "Host",
-                "value": "host",
-            }
-        ]
-        for btn in self.network_buttons:
-            btn["rect"].centerx = config.SCREEN_WIDTH // 2
-
-        # Network configuration
-        input_width = int(config.SCREEN_WIDTH * 0.8)
-        self.ip_input = {
-            "rect": pygame.Rect(0, 150 + (70 + 20) * 4 + 100, input_width, 70),
-            "text": self.data.ip,
-            "active": False,
-            "hint": "IP Address"
-        }
-        self.ip_input["rect"].centerx = config.SCREEN_WIDTH // 2
-
-        self.port_input = {
-            "rect": pygame.Rect(0, 150 + (70 + 20) * 4 + 100 + 90, 200, 70),
-            "text": self.data.port,
-            "active": False,
-            "hint": "Port"
-        }
-        self.port_input["rect"].centerx = config.SCREEN_WIDTH // 2
+        self.lobbies = []
+        self.selected_lobby = None
 
         # Start button
         self.start_btn = pygame.Rect(
@@ -94,6 +58,12 @@ class GameConfigScene:
     def draw(self, surface):
         surface.blit(self.background, (0, 0))
 
+        self.lobbies = []
+        for lobby in config.pgnm.offers.values():
+            self.lobbies.append(lobby)
+
+        self.lobbies.append({"id": "NEW_GAME", "lobby_name": self.new_lobby_text})
+
         # Title
         title_surf = self.title_font.render("Game Configuration", True, (255, 255, 255))
         title_x = (config.SCREEN_WIDTH - title_surf.get_width()) // 2
@@ -101,7 +71,7 @@ class GameConfigScene:
 
         # Mode buttons
         for btn in self.mode_buttons:
-            is_selected = btn["value"] == self.data.mode
+            is_selected = btn["value"] == self.mode
             bg_color = (0, 150, 0) if is_selected else (50, 50, 50)
             border_color = (0, 200, 0) if is_selected else (100, 100, 100)
 
@@ -113,120 +83,61 @@ class GameConfigScene:
             label_rect = label_surf.get_rect(center=btn["rect"].center)
             surface.blit(label_surf, label_rect)
 
-        # Network buttons (Client / Host)
-        if self.data.mode == "network":
-            for btn in self.network_buttons:
-                is_selected = btn["value"] == self.data.network_mode
-                bg_color = (0, 150, 0) if is_selected else (50, 50, 50)
-                border_color = (0, 200, 0) if is_selected else (100, 100, 100)
-
-                pygame.draw.rect(surface, bg_color, btn["rect"])
-                pygame.draw.rect(surface, border_color, btn["rect"], 3)
-
-                text_color = (255, 255, 255) if is_selected else (150, 150, 150)
-                label_surf = self.ui_font.render(btn["label"], True, text_color)
-                label_rect = label_surf.get_rect(center=btn["rect"].center)
+        # Lobby list for network mode
+        if self.mode == "network":
+            lobby_y = 150 + (70 + 20) * 3
+            lobby_h = 70
+            lobby_w = 500
+            for idx, lobby in enumerate(self.lobbies):
+                rect = pygame.Rect(0, lobby_y + idx * (lobby_h + 10), lobby_w, lobby_h)
+                rect.centerx = config.SCREEN_WIDTH // 2
+                is_selected = self.selected_lobby['id'] == lobby['id'] if self.selected_lobby else False
+                bg_color = (0, 150, 200) if is_selected else (60, 60, 60)
+                border_color = (0, 200, 220) if is_selected else (120, 120, 120)
+                pygame.draw.rect(surface, bg_color, rect)
+                pygame.draw.rect(surface, border_color, rect, 3)
+                label_text = f"{lobby['lobby_name']}"
+                label_surf = self.ui_font.render(label_text, True, (255, 255, 255))
+                label_rect = label_surf.get_rect(center=rect.center)
                 surface.blit(label_surf, label_rect)
+                lobby['rect'] = rect  # for hit detection
 
-            # Show IP and Port input fields only if "Client" is selected
-            if self.data.network_mode == "client":
-                self.draw_input(surface, self.ip_input, (0, 255, 0) if self.validate_ip() else (255, 0, 0))
-                self.draw_input(surface, self.port_input, (0, 255, 0) if self.validate_port() else (255, 0, 0))
-
-        # Start button
         pygame.draw.rect(surface, (255, 255, 255), self.start_btn)
         start_label = self.ui_font.render("Start", True, (0, 0, 0))
         label_rect = start_label.get_rect(center=self.start_btn.center)
         surface.blit(start_label, label_rect)
 
-    def draw_input(self, surface, input_data, col):
-        border_color = col if input_data["active"] else (100, 100, 100)
-        pygame.draw.rect(surface, border_color, input_data["rect"], 2)
-
-        text = input_data["text"] or input_data["hint"]
-        text_color = (200, 200, 200) if not input_data["text"] else (255, 255, 255)
-        text_surf = self.ui_font.render(text, True, text_color)
-        text_rect = text_surf.get_rect(center=input_data["rect"].center)
-        surface.blit(text_surf, text_rect)
-
     def handle_click(self, pos):
-        # Mode selection
-
         for btn in self.mode_buttons:
             if btn["rect"].collidepoint(pos):
-                self.data.mode = btn["value"]
-                if self.data.mode != "network":
-                    self.data.network_mode = None  # Reset network mode when not in network mode
+                self.mode = btn["value"]
+                self.selected_lobby = None
                 return True
 
-        # Network mode selection (Client/Host)
-        if self.data.mode == "network":
-            for btn in self.network_buttons:
-                if btn["rect"].collidepoint(pos):
-                    self.data.network_mode = btn["value"]
+        if self.mode == "network":
+            for idx, lobby in enumerate(self.lobbies):
+                if 'rect' in lobby and lobby['rect'].collidepoint(pos):
+                    self.selected_lobby = lobby
                     return True
 
-        # Network inputs
-        if self.data.network_mode == "client":
-            self.ip_input["active"] = self.ip_input["rect"].collidepoint(pos)
-            self.port_input["active"] = self.port_input["rect"].collidepoint(pos)
-
-        # Start button
         if self.start_btn.collidepoint(pos):
-            self.data.save_json(GameConfigScene.SettingsFile)
             self.start_game()
             return True
-
-        return False
-
-    def handle_keydown(self, event):
-        if self.data.network_mode == "client":
-            current_input = None
-            if self.ip_input["active"]:
-                current_input = self.ip_input
-            elif self.port_input["active"]:
-                current_input = self.port_input
-
-            if current_input:
-                if event.key == pygame.K_BACKSPACE:
-                    current_input["text"] = current_input["text"][:-1]
-                else:
-                    char = event.unicode
-                    if current_input == self.port_input and not char.isdigit():
-                        return
-                    if current_input == self.ip_input and not (char.isdigit() or char in ['.', '']):
-                        return
-
-                    current_input["text"] += char
-                    self.data.ip = self.ip_input["text"]
-                    self.data.port = self.port_input["text"]
-                    self.data.save_json(GameConfigScene.SettingsFile)
-                return True
         return False
 
     def start_game(self):
-        if self.data.mode == "network":
-            if self.data.network_mode == "client":
-                if not self.validate_ip():
-                    logger.error("Invalid IP address")
-                    return
-                if not self.validate_port():
-                    logger.error("Invalid port number")
-                    return
+        if self.mode == "network":
+            if self.selected_lobby is None:
+                logger.error("No lobby selected!")
+                return
 
-        mode = self.data.mode
-
-        if mode == "network" and sys.platform == "emscripten":
-            from scenes.menu_scene import MenuScene
-            from scenes.info_scene import InfoScene
-            config.set_scene(InfoScene("Multiplayer\nnot supported\non web, sorry.", 2.5, MenuScene()))
-            return
+        mode = self.mode
 
         if mode == "network":
-            if self.data.network_mode == "client":
-                mode = "client"
-            else:
+            if self.selected_lobby['id'] == "NEW_GAME":
                 mode = "host"
+            else:
+                mode = "client"
 
         match mode:
             case "client":
@@ -238,20 +149,11 @@ class GameConfigScene:
             case "2local":
                 mode = GameMode.LOCAL_TWO_PLAYER
 
-        logger.info(f"Starting {mode} game in {self.data.mode} mode")
-        config.gm.new_game(mode, self.ip_input["text"], self.port_input["text"])
+        logger.info(f"Starting {mode} game in {self.mode} mode")
+        config.gm.new_game(mode, self.selected_lobby)
 
-    def validate_ip(self):
-        octets = self.ip_input["text"].split('.')
-        if len(octets) != 4:
-            return False
-        for octet in octets:
-            if not octet.isdigit() or not 0 <= int(octet) <= 255:
-                return False
-        return True
-
-    def validate_port(self):
-        return self.port_input["text"].isdigit() and 1 <= int(self.port_input["text"]) <= 65535
+    def handle_keydown(self, event):
+        return False
 
     def handle_mouse_motion(self, pos):
         return False

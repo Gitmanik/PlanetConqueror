@@ -1,5 +1,7 @@
 import logging
 
+from managers.pygbagnet_manager import PygbagnetManager
+
 ENABLE_PYGAME_LOG = False
 TURN_TIME = 10 * 1000
 
@@ -37,6 +39,7 @@ LOCAL_STORAGE = "saves"
 # Assets
 assets = None
 gm = None
+pgnm : PygbagnetManager = None
 FONT_NAME = "Kenney Future Narrow.ttf"
 
 
