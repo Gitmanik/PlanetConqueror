@@ -218,7 +218,7 @@ class Node:
             self.proto = "join"
             self.current_channel = cmd.split(" JOIN ")[-1]
             self.data = self.current_channel
-            self.users = []
+            self.users = {}
 
             yield self.JOINED
             return self.discard()
