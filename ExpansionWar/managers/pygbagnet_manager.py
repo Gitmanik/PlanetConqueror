@@ -1,4 +1,5 @@
 import asyncio as asyncio
+import json
 import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -25,6 +26,7 @@ class PygbagnetManager:
             node.GLOBAL: self._on_global,
             node.SPURIOUS: self._on_spurious,
             node.USERLIST: self._on_userlist,
+            node.USERS: self._ignore,
             node.RAW: self._on_raw,
             node.B64JSON: self._on_b64json,
         }
@@ -72,7 +74,7 @@ class PygbagnetManager:
             logger.info("Received offer: %s", offer)
             self.offers[offer['id']] = offer
         elif data['type'] == "join":
-            logger.info(f"Received join: {data}")
+            logger.info(f"Received join: {data} -> {data['nick']}")
             config.gm.conn = data['nick']
             config.gm.send_full_data()
         elif data['type'] == 'message':
@@ -86,3 +88,12 @@ class PygbagnetManager:
 
     async def _ignore(self, _) -> None:
         return
+
+    def offer_lobby(self, lobby_id):
+        offer = {'type': 'offer', 'offer': {'id': lobby_id,'lobby_name': config.pgnm.node.nick } }
+        self.node.tx(offer)
+        logger.info(f"Created lobby: {lobby_id}")
+
+    def join_lobby(self, lobby: dict):
+        logger.info(f"Connected to lobby: {lobby}")
+        self.node.privmsg(lobby['lobby_name'], json.dumps({'type': 'join', 'nick': config.pgnm.node.nick }))

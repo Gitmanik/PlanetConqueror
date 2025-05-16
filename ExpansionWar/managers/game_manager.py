@@ -1,8 +1,6 @@
 import logging
 import math
-import os
 import random
-import threading
 import json
 import time
 import uuid
@@ -58,7 +56,9 @@ class GameManager:
             self.generate_planets(1, 3)
             self.lobby_id = str(uuid.uuid4())
         elif self.game_mode == GameMode.CLIENT:
-            self.connect_to_network_server(lobby)
+            config.pgnm.join_lobby(lobby)
+            self.conn = lobby['lobby_name']
+            self.ticks = 0
         else:
             raise ValueError(f"Wrong game mode: {self.game_mode}")
 
@@ -92,7 +92,7 @@ class GameManager:
 
             if self.ticks - self.last_tick_sync > 1000:
                 self.last_tick_sync = self.ticks
-                self.offer_lobby()
+                config.pgnm.offer_lobby(self.lobby_id)
             return
         elif self.game_mode == GameMode.CLIENT and self.data is None:
             self.ticks = pygame.time.get_ticks()
@@ -325,17 +325,6 @@ class GameManager:
                 self.data.planets.append(Planet(x, y, color))
 
     # Networking
-
-    def offer_lobby(self):
-        offer = {'type': 'offer', 'offer': {'id': self.lobby_id,'lobby_name': config.pgnm.node.nick } }
-        config.pgnm.node.tx(offer)
-        logger.info(f"Created lobby: {config.pgnm.node.pid}")
-
-    def connect_to_network_server(self, lobby: dict):
-        logger.info(f"Connected to lobby: {lobby}")
-        config.pgnm.node.privmsg(lobby['lobby_name'], json.dumps({'type': 'join', 'nick': config.pgnm.node.nick }))
-        self.conn = lobby['lobby_name']
-        self.ticks = 0
 
     def send_network_message(self, message: dict):
         config.pgnm.node.privmsg(self.conn, json.dumps({'type': 'message', 'message': message}))
