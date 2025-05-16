@@ -2,10 +2,10 @@ import logging
 import math
 import os
 import random
-import socket
 import threading
 import json
 import time
+import uuid
 from enum import Enum
 
 import pygame
@@ -36,17 +36,16 @@ class GameManager:
         self.game_mode : GameMode = None
 
         # Networking
-        self.socket : socket = None
-        self.conn : socket = None
-        self.network_thread = None
         self.last_tick_sync = 0
+        self.offer_last_tick = 0
+        self.conn = None
 
-    def new_game(self, mode: GameMode , ip: str = None, port: str = None):
+    def new_game(self, mode: GameMode, lobby = None):
         from scenes.game_scene import GameScene
 
         self.game_mode = mode
 
-        logger.info(f"Creating new game {mode}, ip={ip}, port={port}")
+        logger.info(f"Creating new game {mode}, lobby: {lobby}")
 
         if self.game_mode == GameMode.SINGLE_PLAYER:
             self.data = GameData(config.PLAYER_COLOR, None, 2100, 2100, 1)
@@ -57,9 +56,9 @@ class GameManager:
         elif self.game_mode == GameMode.HOST:
             self.data = GameData(config.PLAYER_COLOR, config.PLAYER2_COLOR, 2100, 2100, 1)
             self.generate_planets(1, 3)
-            self.start_network_server(ip, int(port))
+            self.lobby_id = str(uuid.uuid4())
         elif self.game_mode == GameMode.CLIENT:
-            self.connect_to_network_server(ip, int(port))
+            self.connect_to_network_server(lobby)
         else:
             raise ValueError(f"Wrong game mode: {self.game_mode}")
 
@@ -90,6 +89,10 @@ class GameManager:
     def tick(self):
         if self.game_mode == GameMode.HOST and self.conn is None:
             self.ticks = pygame.time.get_ticks()
+
+            if self.ticks - self.last_tick_sync > 1000:
+                self.last_tick_sync = self.ticks
+                self.offer_lobby()
             return
         elif self.game_mode == GameMode.CLIENT and self.data is None:
             self.ticks = pygame.time.get_ticks()
@@ -286,7 +289,6 @@ class GameManager:
         logger.info(f"Generating planets: level: {self.data.level}, enemy_ct: {enemy_ct}, enemy_planets: {enemy_planets}")
 
         for i in range(-2, enemy_ct):
-            logger.info(i)
             if i == -1:
                 color = self.data.p1color
             elif i == -2:
@@ -324,63 +326,19 @@ class GameManager:
 
     # Networking
 
-    def start_network_server(self, ip: str, port: int):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind(("0.0.0.0", port))
-        self.socket.listen(1)
-        logger.info(f"Server listening on {ip}:{port}")
+    def offer_lobby(self):
+        offer = {'type': 'offer', 'offer': {'id': self.lobby_id,'lobby_name': config.pgnm.node.nick } }
+        config.pgnm.node.tx(offer)
+        logger.info(f"Created lobby: {config.pgnm.node.pid}")
 
-        def accept_client():
-            if self.conn is not None:
-                logger.warning(f"Client tried to connect from, but other is already connected")
-                return
-            self.conn, addr = self.socket.accept()
-            logger.info(f"Client connected from {addr}")
-            self.start_network_thread()
-            self.send_full_data()
-
-        self.network_thread = threading.Thread(target=accept_client, daemon=True)
-        self.network_thread.start()
-
-    def connect_to_network_server(self, ip: str, port: int):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((ip, port))
-        logger.info(f"Connected to server at {ip}:{port}")
-        self.start_network_thread()
+    def connect_to_network_server(self, lobby: dict):
+        logger.info(f"Connected to lobby: {lobby}")
+        config.pgnm.node.privmsg(lobby['lobby_name'], json.dumps({'type': 'join', 'nick': config.pgnm.node.nick }))
+        self.conn = lobby['lobby_name']
         self.ticks = 0
 
-    def start_network_thread(self):
-        self.network_thread = threading.Thread(target=self.network_receive_thread, daemon=True)
-        self.network_thread.start()
-
     def send_network_message(self, message: dict):
-        try:
-            data_str = json.dumps(message) + "\n"
-            if self.game_mode == GameMode.HOST and self.conn:
-                self.conn.sendall(data_str.encode("utf-8"))
-            elif self.game_mode == GameMode.CLIENT and self.socket:
-                self.socket.sendall(data_str.encode("utf-8"))
-        except Exception as e:
-            logger.error("Failed to send network message: " + str(e))
-
-    def network_receive_thread(self):
-        try:
-            if self.game_mode == GameMode.HOST:
-                sock = self.conn
-            else:
-                sock = self.socket
-            file_obj = sock.makefile("r")
-            while True:
-                line = file_obj.readline()
-                if not line:
-                    break
-                try:
-                    message = json.loads(line.strip())
-                    self.process_network_message(message)
-                except Exception as e:
-                    logger.error("Error processing network message: " + str(e))
-        except Exception as e:
-            logger.error("Network receive error: " + str(e))
+        config.pgnm.node.privmsg(self.conn, json.dumps({'type': 'message', 'message': message}))
 
     def process_network_message(self, message: dict):
         action = message.get("action")
