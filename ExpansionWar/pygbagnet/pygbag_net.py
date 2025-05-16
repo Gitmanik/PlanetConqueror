@@ -192,7 +192,6 @@ class Node:
     def process_server(self, cmd, line):
         self.discarded = False
 
-        # TODO clear userlist on JOIN
         if cmd.find(" 353 ") > 0:
             self.proto = "users"
             self.data = line.split(" ")
@@ -219,6 +218,7 @@ class Node:
             self.proto = "join"
             self.current_channel = cmd.split(" JOIN ")[-1]
             self.data = self.current_channel
+            self.users = []
 
             yield self.JOINED
             return self.discard()
