@@ -35,6 +35,7 @@ Use quick thinking and tactical moves to outmaneuver your opponent and take over
 ## Used libraries
 - Pygame
 - Pygbag
+- Pygbag.net
 
 ## Building and packaging via Pygbag
 ```bash
@@ -48,36 +49,3 @@ pip install -r requirements.txt
 cd ExpansionWar
 python3 main.py
 ```
-
-
-## Tasks
-
-### Engine
-- [x] **Implement the game scene in QGraphicsScene** (1 point)
-- [x] **Inheritance from QGraphicsItem – units as separate objects** (1 point)
-- [x] **Interactivity of units – clickability, dragging, context menu** (3 points)
-- [x] **Unit control – selection from the menu and movement on the game grid** (2 points)
-- [x] **Loading unit graphics from .rc file** (1 point)
-- [x] **Highlighting possible moves and attacks depending on the multiplier** (2 points)
-- [x] **Combat system considering levels, unit multiplication, and special battle effects** (3 points)
-- [x] **Turn mechanism and timer for making a move (turn clock)** (2 points)
-- [ ] **Strategic suggestion system based on AI (e.g., best move of the turn)** (1 point)
-- [ ] **Unit control via camera gestures (clicking with hand movement)** (2 points)
-- [x] **Logger displaying messages on the console and in the QTextEdit interface with rotating logging** (1 point)
-    * Press ` (backquote) to toggle
-- [ ] **Switching between 2D and 3D view (including rendering units in 3D)** (4 points)
-
-### Config
-- [x] **Game mode: 1 player / 2 players local / network game (radio buttons group)** (0.5 points)
-- [x] **IP address and port (line edit with mask, validation and hint)** (0.5 points)
-- [x] **Save and read game history (XML)** (1 point)
-- [x] **Save and read game history in NoSQL database (e.g. MongoDB or Firebase)** (1 point)
-    * MongoDB not supported in online build
-- [x] **Save and read game history (JSON)** (1 point)
-- [ ] **Read and playback saved game history with playback speed control** (1 point)
-
-### TCP/IP
-Unfortunately not supported on web build
-- [x] **Connection and sending messages** (2 points)
-- [x] **game update** (3 points)
-- [ ] (*1 point) use of IPv6 (provided that the full task is completed)
