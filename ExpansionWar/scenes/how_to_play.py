@@ -92,7 +92,7 @@ class HowToPlayScene:
 
         # Draw floating planets in the background
         for planet in self.floating_planets:
-            planet.draw(surface, 0, 0)
+            planet.draw(surface, 0, 0, 0)
 
         # Draw black surface
         surface.blit(self.black_surface, (0,0))
