@@ -20,7 +20,7 @@ class AssetManager:
         return list(self.assets.keys())
 
     def read_asset(self, asset_name):
-        logger.debug(f'Reading asset {asset_name}')
+        # logger.debug(f'Reading asset {asset_name}')
         if asset_name.startswith("/"):
             asset_name = asset_name[1:]
         asset_name = "/" + asset_name
