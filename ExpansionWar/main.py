@@ -1,11 +1,9 @@
 import asyncio
-import builtins
 import sys
 
 import pygame
 
 import config
-from managers import pygbagnet_manager
 from managers.asset_manager import AssetManager
 from managers.game_manager import GameManager
 from managers.pygbagnet_manager import PygbagnetManager
@@ -26,7 +24,7 @@ clock = pygame.time.Clock()
 
 async def main():
 
-    config.pgnm = PygbagnetManager(pygbag_net.Node(gid=71830, groupname="PlanetConqueror"))
+    config.pgnm = PygbagnetManager(pygbag_net.Node(gid="PlanetConqueror"))
 
     background = pygame.image.load(config.assets["Background.png"])
     background = pygame.transform.scale(background, [config.SCREEN_WIDTH, config.SCREEN_HEIGHT])

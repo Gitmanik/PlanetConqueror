@@ -1,93 +1,88 @@
-import asyncio as aio
-import traceback
+import asyncio as asyncio
+import logging
+from collections.abc import Awaitable, Callable
+from typing import Any
+
+import config
+
+logger = logging.getLogger(__name__)
+
 
 class PygbagnetManager:
 
-    def __init__(self, node):
-        self.node = node
+    # Typing alias for an async event-handler
+    _Handler = Callable[['PygbagnetManager', Any], Awaitable[None]]
 
-    async def tick(self):
+
+    def __init__(self, node, poll_delay: float = 0.0) -> None:
+        self.node = node
+        self.poll_delay = poll_delay
+        self.offers = dict()
+
+        self._handlers: dict[Any, PygbagnetManager._Handler] = {
+            node.CONNECTED: self._on_connected,
+            node.JOINED: self._on_joined,
+            node.GLOBAL: self._on_global,
+            node.SPURIOUS: self._on_spurious,
+            node.USERLIST: self._on_userlist,
+            node.RAW: self._on_raw,
+            node.B64JSON: self._on_b64json,
+        }
+
+    async def tick(self) -> None:
         for ev in self.node.get_events():
             try:
-                if ev == self.node.SYNC:
-                    cmd = self.node.data[self.node.CMD]
-                    print("SYNC:", self.node.proto, self.node.data, cmd)
-    
-                elif ev == self.node.GAME:
-                    cmd = self.node.data[self.node.CMD]
-                    print("GAME:", self.node.proto, self.node.data, cmd)
-    
-                    if cmd == "clone":
-                        # send all history to child
-                        self.node.checkout_for(self.node.data)
-    
-                    elif cmd == "ingame":
-                        print("TODO: join game")
-                    else:
-                        print("602 ?", cmd, self.node.data)
-    
-                elif ev == self.node.CONNECTED:
-                    print(f"CONNECTED as {self.node.nick}")
-    
-                elif ev == self.node.JOINED:
-                    print("Entered channel", self.node.joined)
-                    if self.node.joined == self.node.lobby_channel:
-                        self.node.tx({self.node.CMD: "ingame", self.node.PID: self.node.pid})
-    
-                elif ev == self.node.TOPIC:
-                    print(f'[{self.node.channel}] TOPIC "{self.node.topics[self.node.channel]}"')
-    
-                elif ev in [self.node.LOBBY, self.node.LOBBY_GAME]:
-                    cmd, pid, nick, info = self.node.proto
-    
-                    if cmd == self.node.HELLO:
-                        print("Lobby/Game:", "Welcome", nick)
-                        # publish if main
-                        if not self.node.fork:
-                            self.node.publish()
-    
-                    elif (ev == self.node.LOBBY_GAME) and (cmd == self.node.OFFER):
-                        if self.node.fork:
-                            print("cannot fork, already a clone/fork pid=", self.node.fork)
-                        elif len(self.node.pstree[self.node.pid]["forks"]):
-                            print("cannot fork, i'm main for", self.node.pstree[self.node.pid]["forks"])
-                        else:
-                            print("forking to game offer", self.node.hint)
-                            self.node.clone(pid)
-    
-                    else:
-                        print(f"\nLOBBY/GAME: {self.node.fork=} {self.node.proto=} {self.node.data=} {self.node.hint=}")
-    
-                elif ev in [self.node.USERS]:
-                    ...
-    
-                elif ev in [self.node.GLOBAL]:
-                    print("GLOBAL:", self.node.data)
-    
-                elif ev in [self.node.SPURIOUS]:
-                    print(f"\nRAW: {self.node.proto=} {self.node.data=}")
-    
-                elif ev in [self.node.USERLIST]:
-                    print(self.node.proto, self.node.users)
-    
-                elif ev == self.node.RAW:
-                    print("RAW:", self.node.data)
-    
-                elif ev == self.node.PING:
-                    # print("ping", self.node.data)
-                    ...
-                elif ev == self.node.PONG:
-                    # print("pong", self.node.data)
-                    ...
-    
-                # promisc mode dumps everything.
-                elif ev == self.node.RX:
-                    ...
-    
-                else:
-                    print(f"52:{ev=} {self.node.rxq=}")
-            except Exception as e:
-                print(f"52:{ev=} {self.node.rxq=} {self.node.proto=} {self.node.data=}")
-                traceback.print_exception(e)
-    
-        await aio.sleep(0)
+                await self._dispatch(ev)
+            except Exception:
+                logger.exception("Uncaught exception while handling %s (%s)", ev, self.node.data)
+
+        await asyncio.sleep(0)
+
+    async def _dispatch(self, ev) -> None:
+        """Route an event to its dedicated handler."""
+        handler = self._handlers.get(ev, self._on_unknown)
+        await handler(ev)
+
+    # ------------------- individual event handlers -------------------- #
+
+    async def _on_connected(self, _) -> None:
+        logger.info("CONNECTED as %s", self.node.nick)
+
+    async def _on_joined(self, _) -> None:
+        logger.info("Entered channel %s", self.node.current_channel)
+
+    async def _on_global(self, _) -> None:
+        # logger.debug("GLOBAL: %s", self.node.data)
+        return
+
+    async def _on_spurious(self, _) -> None:
+        logger.debug("SPURIOUS: proto=%s data=%s", self.node.proto, self.node.data)
+
+    async def _on_userlist(self, _) -> None:
+        logger.debug("USERLIST: %s", self.node.users)
+
+    async def _on_raw(self, _) -> None:
+        logger.debug("RAW: %s", self.node.data)
+
+    async def _on_b64json(self, ev) -> None:
+        data = self.node.data
+
+        if data['type'] == "offer":
+            offer = data['offer']
+            logger.info("Received offer: %s", offer)
+            self.offers[offer['id']] = offer
+        elif data['type'] == "join":
+            logger.info(f"Received join: {data}")
+            config.gm.conn = data['nick']
+            config.gm.send_full_data()
+        elif data['type'] == 'message':
+            logger.info(f"Received message: {data}")
+            config.gm.process_network_message(data['message'])
+
+        logger.debug("B64JSON: %s", data)
+
+    async def _on_unknown(self, ev) -> None:
+        logger.warning("Unhandled event: %s – rxq=%s", ev, self.node)
+
+    async def _ignore(self, _) -> None:
+        return
