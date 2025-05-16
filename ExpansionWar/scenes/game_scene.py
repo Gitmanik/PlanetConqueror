@@ -194,9 +194,6 @@ class GameScene:
 
         return False
 
-    def handle_keydown(self, event):
-        return False
-
     def get_card_rects(self):
         total_cards = 2
         spacing = 40

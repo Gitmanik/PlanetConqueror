@@ -152,11 +152,3 @@ class GameConfigScene:
         logger.info(f"Starting {mode} game in {self.mode} mode")
         config.gm.new_game(mode, self.selected_lobby)
 
-    def handle_keydown(self, event):
-        return False
-
-    def handle_mouse_motion(self, pos):
-        return False
-
-    def handle_mouse_up(self, pos):
-        return False

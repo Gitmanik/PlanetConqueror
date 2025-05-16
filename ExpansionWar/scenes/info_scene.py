@@ -46,14 +46,3 @@ class InfoScene:
         if elapsed > self.duration:
             config.set_scene(self.next_scene)
 
-    def handle_click(self, pos):
-        return False
-
-    def handle_mouse_motion(self, pos):
-        return False
-
-    def handle_mouse_up(self, pos):
-        return False
-
-    def handle_keydown(self, event):
-        return False

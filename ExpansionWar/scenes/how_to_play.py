@@ -121,12 +121,3 @@ class HowToPlayScene:
             config.set_scene(MenuScene())
             return True
         return False
-
-    def handle_mouse_motion(self, pos):
-        return False
-
-    def handle_mouse_up(self, pos):
-        return False
-
-    def handle_keydown(self, event):
-        return False

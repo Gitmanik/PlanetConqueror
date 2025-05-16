@@ -42,16 +42,20 @@ async def main():
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
-                    config.current_scene.handle_click(event.pos)
+                    if hasattr(config.current_scene, "handle_click"):
+                        config.current_scene.handle_click(event.pos)
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
-                    config.current_scene.handle_mouse_up(event.pos)
+                    if hasattr(config.current_scene, "handle_mouse_up"):
+                        config.current_scene.handle_mouse_up(event.pos)
             elif event.type == pygame.MOUSEMOTION:
-                config.current_scene.handle_mouse_motion(event.pos)
+                if hasattr(config.current_scene, "handle_mouse_motion"):
+                    config.current_scene.handle_mouse_motion(event.pos)
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKQUOTE:
                     config.ENABLE_PYGAME_LOG = not config.ENABLE_PYGAME_LOG
-                config.current_scene.handle_keydown(event)
+                if hasattr(config.current_scene, "handle_keydown"):
+                    config.current_scene.handle_keydown(event)
 
         config.current_scene.draw(screen)
         if config.ENABLE_PYGAME_LOG:
