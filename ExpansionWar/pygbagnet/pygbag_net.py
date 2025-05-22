@@ -260,9 +260,6 @@ class Node:
             except Exception as e:
                 traceback.print_exception(e)
 
-        yield self.SPURIOUS
-        return None
-
     def discard(self):
         self.discarded = True
 
