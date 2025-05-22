@@ -57,7 +57,6 @@ class GameManager:
         elif self.game_mode == GameMode.CLIENT:
             config.pgnm.join_lobby(lobby)
             self.conn = lobby['lobby_name']
-            self.ticks = 0
         else:
             raise ValueError(f"Wrong game mode: {self.game_mode}")
 
@@ -91,8 +90,8 @@ class GameManager:
         if self.game_mode == GameMode.HOST and self.conn is None:
             self.ticks = pygame.time.get_ticks()
 
-            if self.ticks - self.last_tick_sync > 1000:
-                self.last_tick_sync = self.ticks
+            if self.ticks - self.offer_last_tick > 1000:
+                self.offer_last_tick = self.ticks
                 config.pgnm.offer_lobby(self.lobby_id)
             return
         elif self.game_mode == GameMode.CLIENT and self.data is None:
@@ -102,7 +101,7 @@ class GameManager:
         self.data.current_ticks += pygame.time.get_ticks() - self.ticks
         self.ticks = pygame.time.get_ticks()
 
-        if self.game_mode == GameMode.HOST and self.data.current_ticks - self.last_tick_sync > 1000:
+        if self.game_mode == GameMode.HOST and self.data.current_ticks - self.last_tick_sync > 2500:
             self.last_tick_sync = self.data.current_ticks
             self.sync_ticks()
 
