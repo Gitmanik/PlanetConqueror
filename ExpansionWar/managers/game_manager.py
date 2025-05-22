@@ -66,12 +66,14 @@ class GameManager:
 
 
     def next_level(self):
-        from scenes.game_scene import GameScene
-        self.data = GameData(self.data.p1color, self.data.p2color, self.data.year, self.data.year_start, self.data.level + 1)
-        self.generate_planets()
-
-        config.set_scene(GameScene(self))
-
+        if self.game_mode in (GameMode.CLIENT, GameMode.HOST):
+            from scenes.game_config_scene import GameConfigScene
+            config.set_scene(GameConfigScene())
+        else:
+            from scenes.game_scene import GameScene
+            self.data = GameData(self.data.p1color, self.data.p2color, self.data.year, self.data.year_start, self.data.level + 1)
+            self.generate_planets()
+            config.set_scene(GameScene(self))
 
     def load_game(self, selected_file : str):
         from scenes.game_scene import GameScene
