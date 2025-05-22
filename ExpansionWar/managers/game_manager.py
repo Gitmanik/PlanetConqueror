@@ -1,7 +1,6 @@
 import logging
 import math
 import random
-import json
 import time
 import uuid
 from enum import Enum
@@ -329,7 +328,7 @@ class GameManager:
     # Networking
 
     def send_network_message(self, message: dict):
-        config.pgnm.node.privmsg(self.conn, json.dumps({'type': 'message', 'message': message}))
+        config.pgnm.node.privmsg_b64json(self.conn, {'type': 'message', 'message': message})
 
     def process_network_message(self, message: dict):
         action = message.get("action")

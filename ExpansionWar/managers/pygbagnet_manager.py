@@ -96,4 +96,4 @@ class PygbagnetManager:
 
     def join_lobby(self, lobby: dict):
         logger.info(f"Connected to lobby: {lobby}")
-        self.node.privmsg(lobby['lobby_name'], json.dumps({'type': 'join', 'nick': config.pgnm.node.nick }))
+        self.node.privmsg_b64json(lobby['lobby_name'], {'type': 'join', 'nick': config.pgnm.node.nick })

@@ -179,6 +179,10 @@ class Node:
     def privmsg(self, nick, data):
         self.wire(f"PRIVMSG {nick} :{data}")
 
+    def privmsg_b64json(self, nick, data):
+        ser = json.dumps(data)
+        self.privmsg(nick, f"{self.B64JSON}:{base64.b64encode(ser.encode('ascii')).decode('utf-8')}")
+
     def out(self, *blocks):
         self.privmsg(self.lobby_channel, ' '.join(map(str, blocks)))
 
@@ -244,13 +248,6 @@ class Node:
 
     def process_game(self, cmd, line):
         self.discarded = False
-
-        privmsg = f"PRIVMSG {self.nick} "
-
-        if cmd.endswith(privmsg):
-            self.data = json.loads(line)
-            yield self.B64JSON
-            return self.discard()
 
         if line.startswith(f"{Node.B64JSON}:"):
             try:
